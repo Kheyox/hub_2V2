@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build:
@@ -32,6 +34,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run game engine tests
+        run: npm run test
+
       - name: Build web app
         run: npm run build
 
@@ -41,18 +46,61 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
 
+      - name: Decode signing keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64" || (echo "Missing ANDROID_KEYSTORE_BASE64 secret" && exit 1)
+          test -n "$ANDROID_KEYSTORE_PASSWORD" || (echo "Missing ANDROID_KEYSTORE_PASSWORD secret" && exit 1)
+          test -n "$ANDROID_KEY_ALIAS" || (echo "Missing ANDROID_KEY_ALIAS secret" && exit 1)
+          test -n "$ANDROID_KEY_PASSWORD" || (echo "Missing ANDROID_KEY_PASSWORD secret" && exit 1)
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/release.keystore
+
       - name: Build installable APK
         working-directory: android
+        env:
+          ANDROID_KEYSTORE_PATH: ../release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew assembleRelease
+
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/Duelio.apk
+
+      - name: Write public update manifest
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          cat > dist/update-manifest.json <<EOF
+          {
+            "version": "$VERSION",
+            "releaseUrl": "https://github.com/${{ github.repository }}/releases/latest",
+            "apkUrl": "https://github.com/${{ github.repository }}/releases/latest/download/Duelio.apk",
+            "notes": "Duelio $VERSION"
+          }
+          EOF
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: Duelio-apk
-          path: android/app/build/outputs/apk/release/*.apk
+          path: android/app/build/outputs/apk/release/Duelio.apk
 
       - name: Attach APK to GitHub release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: android/app/build/outputs/apk/release/*.apk
+          files: android/app/build/outputs/apk/release/Duelio.apk
+
+      - name: Upload Pages artifact
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy public update manifest
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/deploy-pages@v4

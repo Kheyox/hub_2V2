@@ -1,4 +1,5 @@
-import { APP_VERSION, GITHUB_REPO } from "./version";
+import { APP_VERSION, GITHUB_REPO, UPDATE_MANIFEST_URL } from "./version";
+import { compareVersions, normalizeVersion } from "./gameEngines";
 
 export type UpdateInfo =
   | {
@@ -19,24 +20,36 @@ type GitHubRelease = {
   body?: string;
   assets?: Array<{ name: string; browser_download_url: string }>;
 };
-
-const normalize = (version: string) => version.replace(/^v/i, "").trim();
-
-const compareVersions = (a: string, b: string) => {
-  const left = normalize(a).split(".").map(Number);
-  const right = normalize(b).split(".").map(Number);
-  const length = Math.max(left.length, right.length);
-
-  for (let index = 0; index < length; index += 1) {
-    const diff = (left[index] || 0) - (right[index] || 0);
-    if (diff !== 0) return diff;
-  }
-
-  return 0;
+type UpdateManifest = {
+  version: string;
+  releaseUrl: string;
+  apkUrl?: string;
+  notes?: string;
 };
 
 export const checkForUpdate = async (): Promise<UpdateInfo> => {
   const releaseUrl = `https://github.com/${GITHUB_REPO}/releases/latest`;
+
+  try {
+    const response = await fetch(`${UPDATE_MANIFEST_URL}?t=${Date.now()}`, { cache: "no-store" });
+    if (response.ok) {
+      const manifest = (await response.json()) as UpdateManifest;
+      const latestVersion = normalizeVersion(manifest.version);
+      if (compareVersions(latestVersion, APP_VERSION) > 0) {
+        return {
+          status: "available",
+          currentVersion: APP_VERSION,
+          latestVersion,
+          releaseUrl: manifest.releaseUrl,
+          apkUrl: manifest.apkUrl,
+          notes: manifest.notes || ""
+        };
+      }
+      return { status: "current", currentVersion: APP_VERSION, latestVersion };
+    }
+  } catch {
+    // GitHub API fallback below keeps update checks useful while Pages is not ready.
+  }
 
   try {
     const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
@@ -48,7 +61,7 @@ export const checkForUpdate = async (): Promise<UpdateInfo> => {
         return {
           status: "blocked",
           currentVersion: APP_VERSION,
-          reason: "GitHub ne laisse pas l'app lire les releases. Le depot doit etre public, ou il faut un flux de mise a jour public.",
+          reason: "Le manifeste public n'est pas encore disponible et GitHub bloque les releases privees.",
           releaseUrl
         };
       }
@@ -57,7 +70,7 @@ export const checkForUpdate = async (): Promise<UpdateInfo> => {
     }
 
     const release = (await response.json()) as GitHubRelease;
-    const latestVersion = normalize(release.tag_name);
+    const latestVersion = normalizeVersion(release.tag_name);
     const apk = release.assets?.find((asset) => asset.name.toLowerCase().endsWith(".apk"));
 
     if (compareVersions(latestVersion, APP_VERSION) > 0) {

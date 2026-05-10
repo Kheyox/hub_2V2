@@ -4,19 +4,25 @@ android {
     namespace "com.kheyox.hub2v2"
     compileSdk rootProject.ext.compileSdkVersion
     signingConfigs {
-        duelio {
-            storeFile file("../duelio-update.keystore")
-            storePassword "duelio123"
-            keyAlias "duelio"
-            keyPassword "duelio123"
+        releaseKey {
+            def keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+            def keystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            def keyAliasValue = System.getenv("ANDROID_KEY_ALIAS")
+            def keyPasswordValue = System.getenv("ANDROID_KEY_PASSWORD")
+            if (keystorePath && keystorePassword && keyAliasValue && keyPasswordValue) {
+                storeFile file(keystorePath)
+                storePassword keystorePassword
+                keyAlias keyAliasValue
+                keyPassword keyPasswordValue
+            }
         }
     }
     defaultConfig {
         applicationId "com.kheyox.hub2v2"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 12
-        versionName "0.1.11"
+        versionCode 13
+        versionName "0.1.12"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -25,11 +31,10 @@ android {
         }
     }
     buildTypes {
-        debug {
-            signingConfig signingConfigs.duelio
-        }
         release {
-            signingConfig signingConfigs.duelio
+            if (System.getenv("ANDROID_KEYSTORE_PATH")) {
+                signingConfig signingConfigs.releaseKey
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

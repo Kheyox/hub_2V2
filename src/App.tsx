@@ -46,6 +46,10 @@ type TournamentState = {
   target: 3 | 5 | 7;
   score: [number, number];
 };
+type OnboardingState = {
+  done: boolean;
+  step: 0 | 1 | 2;
+};
 
 const defaultSettings: GameSettings = {
   matchesStart: 21,
@@ -125,6 +129,7 @@ export function App() {
   const [gameFilter, setGameFilter] = useState<GameFilter>("Tous");
   const [rulesGame, setRulesGame] = useState<GameDefinition | null>(null);
   const [tournament, setTournament] = useState<TournamentState>(() => loadJson("duelio.tournament", defaultTournament));
+  const [onboarding, setOnboarding] = useState<OnboardingState>(() => loadJson("duelio.onboarding", { done: false, step: 0 as const }));
   const [update, setUpdate] = useState<UpdateInfo | null>(null);
   const [updatePanelOpen, setUpdatePanelOpen] = useState(false);
   const currentGame = useMemo(() => games.find((game) => game.id === selectedGame), [selectedGame]);
@@ -164,6 +169,10 @@ export function App() {
   useEffect(() => {
     window.localStorage.setItem("duelio.tournament", JSON.stringify(tournament));
   }, [tournament]);
+
+  useEffect(() => {
+    window.localStorage.setItem("duelio.onboarding", JSON.stringify(onboarding));
+  }, [onboarding]);
 
   useEffect(() => {
     let remove: undefined | (() => void);
@@ -335,8 +344,10 @@ export function App() {
           <span className="tile-copy">
             <strong>{game.title}</strong>
             <small>{game.subtitle}</small>
+            {!compact && <small className="tile-mood">{game.mood}</small>}
             {!compact && <em>{game.category}</em>}
           </span>
+          {!compact && <GamePreview gameId={game.id} />}
         </button>
         <div className="tile-actions">
           <button className={isFavorite ? "mini-action active" : "mini-action"} onClick={() => toggleFavorite(game.id)} aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}>
@@ -352,6 +363,54 @@ export function App() {
 
   return (
     <main className={`app-shell theme-${theme}`}>
+      {!onboarding.done && (
+        <section className="onboarding-modal" role="dialog" aria-modal="true" aria-label="Bienvenue dans Duelio">
+          <div className="onboarding-card">
+            <div className="onboarding-preview" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+            {onboarding.step === 0 && (
+              <>
+                <p className="kicker">Premier lancement</p>
+                <h2>On prepare votre table de jeu</h2>
+                <label>Joueur 1<input value={players[0].name} maxLength={16} onChange={(event) => renamePlayer(0, event.target.value)} /></label>
+                <label>Joueur 2<input value={players[1].name} maxLength={16} onChange={(event) => renamePlayer(1, event.target.value)} /></label>
+              </>
+            )}
+            {onboarding.step === 1 && (
+              <>
+                <p className="kicker">Ambiance</p>
+                <h2>Choisis un theme</h2>
+                <div className="theme-choice">
+                  {(["dark", "arcade", "wood", "neon"] as ThemeName[]).map((item) => (
+                    <button key={item} className={theme === item ? "active" : ""} onClick={() => setTheme(item)}>{item === "dark" ? "Sombre" : item === "wood" ? "Bois" : item === "neon" ? "Neon" : "Arcade"}</button>
+                  ))}
+                </div>
+              </>
+            )}
+            {onboarding.step === 2 && (
+              <>
+                <p className="kicker">Comment ca marche</p>
+                <h2>Un telephone, deux prenoms, des revanches</h2>
+                <div className="onboarding-notes">
+                  <span>Les scores restent lies aux prenoms.</span>
+                  <span>Le bouton ? affiche les regles courtes de chaque jeu.</span>
+                  <span>Favoris, recents et tournois t'evitent de fouiller.</span>
+                </div>
+              </>
+            )}
+            <div className="onboarding-actions">
+              {onboarding.step > 0 && <button className="secondary-action" onClick={() => setOnboarding((current) => ({ ...current, step: (current.step - 1) as 0 | 1 | 2 }))}>Retour</button>}
+              <button className="primary-action" onClick={() => setOnboarding((current) => current.step === 2 ? { done: true, step: 2 } : { ...current, step: (current.step + 1) as 0 | 1 | 2 })}>
+                {onboarding.step === 2 ? "Entrer" : "Continuer"}
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
       <header className="topbar">
         {selectedGame ? (
           <button className="icon-button" onClick={() => setSelectedGame(null)} aria-label="Retour au hub">
@@ -662,4 +721,16 @@ export function GameHeader({ title, status, onReset }: { title: string; status: 
       </button>
     </div>
   );
+}
+
+function GamePreview({ gameId }: { gameId: GameId }) {
+  if (gameId === "connect4") return <span className="game-preview preview-connect"><i /><i /><i /><i /><i /><i /><i /><i /></span>;
+  if (gameId === "yatzy") return <span className="game-preview preview-dice"><i /><i /><i /></span>;
+  if (gameId === "memory") return <span className="game-preview preview-memory"><i /><i /><i /><i /></span>;
+  if (gameId === "battleship") return <span className="game-preview preview-battle"><i /><i /><i /><i /><i /><i /></span>;
+  if (gameId === "checkers") return <span className="game-preview preview-checkers"><i /><i /><i /><i /></span>;
+  if (gameId === "dominoes") return <span className="game-preview preview-domino"><i /><i /><i /></span>;
+  if (gameId === "mancala") return <span className="game-preview preview-mancala"><i /><i /><i /><i /><i /><i /></span>;
+  if (gameId === "quarto") return <span className="game-preview preview-quarto"><i /><i /><i /><i /></span>;
+  return <span className="game-preview preview-grid"><i /><i /><i /><i /></span>;
 }

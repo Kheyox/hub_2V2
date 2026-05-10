@@ -1,6 +1,6 @@
 # Duelio
 
-Hub de jeux tour par tour en 1v1 sur le meme telephone.
+Hub de jeux tour par tour en 1v1 sur le meme telephone, genere en APK Android via Capacitor.
 
 ## Jeux inclus
 
@@ -8,6 +8,15 @@ Hub de jeux tour par tour en 1v1 sur le meme telephone.
 - Puissance 4
 - Pendu
 - Yatzy
+- Reversi
+- Allumettes
+- Mastermind
+- Bataille navale
+- Dames
+- Dominos
+- Awale
+- Quarto
+- Memory
 
 ## Developpement
 
@@ -16,18 +25,21 @@ npm install
 npm run dev
 ```
 
-## APK Android
+## Tests
 
 ```bash
-npm run build
-npx cap add android
-npx cap sync android
-cd android
-./gradlew assembleDebug
+npm run test
 ```
 
-Le workflow GitHub Actions genere une APK installable quand un tag `v*` est pousse.
+## Release Android
 
-## Mises a jour
+Les APK release sont signes par GitHub Actions avec des secrets, pas avec une cle stockee dans le repo.
 
-L'app verifie la derniere release GitHub au lancement. Pour que cette verification fonctionne sans embarquer de token dans l'APK, les releases du depot doivent etre lisibles publiquement, ou l'app doit pointer vers un manifeste de mise a jour public.
+Secrets requis dans `Settings > Secrets and variables > Actions` :
+
+- `ANDROID_KEYSTORE_BASE64` : contenu du keystore encode en base64.
+- `ANDROID_KEYSTORE_PASSWORD` : mot de passe du keystore.
+- `ANDROID_KEY_ALIAS` : alias de la cle.
+- `ANDROID_KEY_PASSWORD` : mot de passe de la cle.
+
+Le workflow GitHub Actions lance les tests, construit l'app, signe `Duelio.apk`, l'attache a la release taguee, puis publie `update-manifest.json` via GitHub Pages pour que l'app puisse verifier les mises a jour sans lire l'API d'un depot prive.

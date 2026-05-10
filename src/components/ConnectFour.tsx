@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GameHeader } from "../App";
+import { connectFourWinner } from "../gameEngines";
 import type { GameProps, PlayerIndex } from "../playerTypes";
 
 type Player = "R" | "Y";
@@ -8,39 +9,11 @@ type Cell = Player | null;
 const rows = 6;
 const cols = 7;
 
-const winnerOf = (board: Cell[]) => {
-  const dirs = [
-    [1, 0],
-    [0, 1],
-    [1, 1],
-    [1, -1]
-  ];
-
-  for (let row = 0; row < rows; row += 1) {
-    for (let col = 0; col < cols; col += 1) {
-      const player = board[row * cols + col];
-      if (!player) continue;
-
-      for (const [dr, dc] of dirs) {
-        let count = 0;
-        for (let step = 0; step < 4; step += 1) {
-          const r = row + dr * step;
-          const c = col + dc * step;
-          if (r >= 0 && r < rows && c >= 0 && c < cols && board[r * cols + c] === player) count += 1;
-        }
-        if (count === 4) return player;
-      }
-    }
-  }
-
-  return null;
-};
-
 export function ConnectFour({ players, onWin, feedback }: GameProps) {
   const [board, setBoard] = useState<Cell[]>(Array(rows * cols).fill(null));
   const [turn, setTurn] = useState<Player>("R");
   const reportedWinner = useRef<Player | null>(null);
-  const winner = useMemo(() => winnerOf(board), [board]);
+  const winner = useMemo(() => connectFourWinner(board, rows, cols), [board]);
   const isDraw = !winner && board.every(Boolean);
   const playerName = (token: Player) => players[token === "R" ? 0 : 1].name;
   const status = winner ? `${playerName(winner)} gagne` : isDraw ? "Grille pleine" : `A ${playerName(turn)} de jouer`;

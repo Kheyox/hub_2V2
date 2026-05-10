@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GameHeader } from "../App";
+import { yatzyScoreFor, type YatzyCategory } from "../gameEngines";
 import type { GameProps, PlayerIndex } from "../playerTypes";
 
 type Player = 0 | 1;
-type Category = "ones" | "twos" | "threes" | "fours" | "fives" | "sixes" | "chance" | "yatzy";
+type Category = YatzyCategory;
 type Scores = Record<Category, number | null>;
 
 const categories: Array<{ id: Category; label: string }> = [
@@ -19,13 +20,6 @@ const categories: Array<{ id: Category; label: string }> = [
 
 const emptyScores = (): Scores => ({ ones: null, twos: null, threes: null, fours: null, fives: null, sixes: null, chance: null, yatzy: null });
 const rollDice = (held: boolean[], current: number[]) => current.map((value, index) => (held[index] ? value : Math.ceil(Math.random() * 6)));
-
-const scoreFor = (category: Category, dice: number[]) => {
-  const target = categories.findIndex((item) => item.id === category) + 1;
-  if (category === "chance") return dice.reduce((sum, value) => sum + value, 0);
-  if (category === "yatzy") return dice.every((value) => value === dice[0]) ? 50 : 0;
-  return dice.filter((value) => value === target).reduce((sum, value) => sum + value, 0);
-};
 
 export function Yatzy({ players, onWin, feedback }: GameProps) {
   const [dice, setDice] = useState([1, 1, 1, 1, 1]);
@@ -63,7 +57,7 @@ export function Yatzy({ players, onWin, feedback }: GameProps) {
   const score = (category: Category) => {
     if (rolls === 0 || scores[player][category] !== null || finished || rolling) return;
     const next: [Scores, Scores] = [{ ...scores[0] }, { ...scores[1] }];
-    next[player][category] = scoreFor(category, dice);
+    next[player][category] = yatzyScoreFor(category, dice);
     setScores(next);
     setPlayer(player === 0 ? 1 : 0);
     setHeld([false, false, false, false, false]);

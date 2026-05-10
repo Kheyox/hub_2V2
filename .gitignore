@@ -4,5 +4,7 @@ android/.gradle/
 android/app/build/
 android/build/
 android/local.properties
+android/*.keystore
+android/*.jks
 .DS_Store
 *.log

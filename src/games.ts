@@ -22,6 +22,7 @@ export type GameDefinition = {
   subtitle: string;
   icon: LucideIcon;
   accent: string;
+  mood: string;
   category: "Rapide" | "Strategie" | "Hasard" | "Deduction";
   rules: {
     objective: string;
@@ -37,6 +38,7 @@ export const games: GameDefinition[] = [
     subtitle: "Duel rapide en 3x3",
     icon: Grid3X3,
     accent: "#39c6a3",
+    mood: "Grille claire, duel instantane",
     category: "Rapide",
     rules: { objective: "Aligner tous ses symboles avant l'autre joueur.", turn: "Chaque joueur pose un symbole dans une case libre.", tips: ["En 4x4, il faut remplir une ligne de 4.", "Les diagonales comptent."] }
   },
@@ -46,6 +48,7 @@ export const games: GameDefinition[] = [
     subtitle: "Aligne quatre pions",
     icon: Rows3,
     accent: "#f3c14b",
+    mood: "Jetons lourds, plateau vertical",
     category: "Strategie",
     rules: { objective: "Aligner quatre jetons horizontalement, verticalement ou en diagonale.", turn: "Choisis une colonne, le jeton tombe au plus bas.", tips: ["Un coup qui touche donne quand meme le tour suivant.", "Bloque les menaces de trois jetons."] }
   },
@@ -55,6 +58,7 @@ export const games: GameDefinition[] = [
     subtitle: "Un mot, six erreurs",
     icon: CircleDot,
     accent: "#ef7a59",
+    mood: "Mot secret, tension douce",
     category: "Deduction",
     rules: { objective: "Le devineur doit trouver le mot avant d'epuiser les erreurs.", turn: "Un joueur cache le mot, l'autre propose des lettres.", tips: ["Les accents sont retires automatiquement.", "Si le devineur perd, le joueur qui a choisi le mot gagne."] }
   },
@@ -64,6 +68,7 @@ export const games: GameDefinition[] = [
     subtitle: "Des, choix, sang-froid",
     icon: Dice5,
     accent: "#7fb7ff",
+    mood: "Des blancs, table de score",
     category: "Hasard",
     rules: { objective: "Marquer plus de points que l'autre joueur.", turn: "Lance jusqu'a trois fois, garde des des, puis choisis une categorie.", tips: ["Yatzy vaut 50 points.", "Chance additionne tous les des."] }
   },
@@ -73,6 +78,7 @@ export const games: GameDefinition[] = [
     subtitle: "Retourne le plateau",
     icon: Sparkles,
     accent: "#39c6a3",
+    mood: "Disques qui retournent",
     category: "Strategie",
     rules: { objective: "Avoir plus de pions que l'adversaire en fin de partie.", turn: "Pose un pion sur une case valide pour encadrer et retourner des pions.", tips: ["Les coups valides sont marques.", "Les coins sont tres puissants."] }
   },
@@ -82,6 +88,7 @@ export const games: GameDefinition[] = [
     subtitle: "Ne prends pas la derniere",
     icon: Flame,
     accent: "#ef7a59",
+    mood: "Allumettes, piege final",
     category: "Rapide",
     rules: { objective: "Forcer l'autre joueur a prendre la derniere allumette.", turn: "Prends 1, 2 ou 3 allumettes.", tips: ["Le nombre de depart est reglable.", "Essaie de laisser 1, 5, 9, 13..."] }
   },
@@ -91,6 +98,7 @@ export const games: GameDefinition[] = [
     subtitle: "Code secret en duel",
     icon: Brain,
     accent: "#d89cff",
+    mood: "Code couleur, deduction",
     category: "Deduction",
     rules: { objective: "Deviner le code secret en huit essais.", turn: "Le codeur choisit 4 couleurs, le devineur propose des combinaisons.", tips: ["Bien = bonne couleur au bon endroit.", "Couleur = bonne couleur au mauvais endroit."] }
   },
@@ -100,6 +108,7 @@ export const games: GameDefinition[] = [
     subtitle: "Touche et coule",
     icon: Ship,
     accent: "#7fb7ff",
+    mood: "Radar bleu, tirs caches",
     category: "Strategie",
     rules: { objective: "Detruire tous les navires adverses.", turn: "Attaque une case du plateau ennemi. Un tir touche te laisse jouer.", tips: ["Les navires sont generes automatiquement.", "Les tirs deja joues restent visibles."] }
   },
@@ -109,6 +118,7 @@ export const games: GameDefinition[] = [
     subtitle: "Prends les pions",
     icon: Swords,
     accent: "#f5c84c",
+    mood: "Damier bois, prises forcees",
     category: "Strategie",
     rules: { objective: "Capturer tous les pions adverses ou bloquer l'autre joueur.", turn: "Deplace un pion en diagonale. Les prises sont prioritaires.", tips: ["Un pion arrive au bout devient dame.", "Les cases de destination valides sont marquees."] }
   },
@@ -118,6 +128,7 @@ export const games: GameDefinition[] = [
     subtitle: "Pose ou pioche",
     icon: Table2,
     accent: "#39c6a3",
+    mood: "Pieces ivoire, ligne centrale",
     category: "Strategie",
     rules: { objective: "Te debarrasser de tes dominos ou finir avec le moins de points.", turn: "Pose un domino compatible avec une extremite ou pioche.", tips: ["Le double le plus fort commence.", "Si personne ne peut jouer, le moins de points gagne."] }
   },
@@ -127,6 +138,7 @@ export const games: GameDefinition[] = [
     subtitle: "Seme les graines",
     icon: Landmark,
     accent: "#ef7a59",
+    mood: "Graines, bois creuse",
     category: "Strategie",
     rules: { objective: "Avoir le plus de graines dans ton grenier.", turn: "Choisis une case de ton camp et seme les graines une par une.", tips: ["Finir dans ton grenier donne un tour bonus.", "Le jeu finit quand un camp est vide."] }
   },
@@ -136,6 +148,7 @@ export const games: GameDefinition[] = [
     subtitle: "Quatre pieces, un trait",
     icon: Puzzle,
     accent: "#d89cff",
+    mood: "Pieces abstraites, piege logique",
     category: "Deduction",
     rules: { objective: "Former une ligne de 4 pieces partageant un attribut.", turn: "Place la piece donnee, puis choisis la piece que l'autre devra placer.", tips: ["Les attributs: taille, forme, couleur, plein/creux.", "La ligne peut etre une rangee, colonne ou diagonale."] }
   },
@@ -145,6 +158,7 @@ export const games: GameDefinition[] = [
     subtitle: "Trouve les paires",
     icon: Grid3X3,
     accent: "#7fb7ff",
+    mood: "Cartes retournees, memoire",
     category: "Rapide",
     rules: { objective: "Trouver plus de paires que l'autre joueur.", turn: "Retourne deux cartes. Si elles correspondent, tu marques et rejoues.", tips: ["Memorise les emplacements.", "Une mauvaise paire passe le tour."] }
   }
