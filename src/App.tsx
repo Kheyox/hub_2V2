@@ -71,6 +71,7 @@ const defaultTournament: TournamentState = {
   score: [0, 0]
 };
 const gameFilters: GameFilter[] = ["Tous", "Rapide", "Strategie", "Hasard", "Deduction"];
+const landscapeGames: GameId[] = ["connect4", "battleship", "checkers", "quarto"];
 
 const loadPlayers = (): PlayerProfiles => {
   try {
@@ -133,6 +134,7 @@ export function App() {
   const [update, setUpdate] = useState<UpdateInfo | null>(null);
   const [updatePanelOpen, setUpdatePanelOpen] = useState(false);
   const currentGame = useMemo(() => games.find((game) => game.id === selectedGame), [selectedGame]);
+  const isLandscapeGame = Boolean(selectedGame && landscapeGames.includes(selectedGame));
   const lastPlayedGame = useMemo(() => games.find((game) => game.id === lastPlayed), [lastPlayed]);
   const favoriteGames = useMemo(() => favorites.map((id) => games.find((game) => game.id === id)).filter(Boolean) as GameDefinition[], [favorites]);
   const recentGameDefs = useMemo(() => recentGames.map((id) => games.find((game) => game.id === id)).filter(Boolean) as GameDefinition[], [recentGames]);
@@ -206,6 +208,34 @@ export function App() {
       setUpdatePanelOpen(info.status === "available");
     });
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    const setOrientation = async () => {
+      try {
+        const { ScreenOrientation } = await import("@capacitor/screen-orientation");
+        if (!active) return;
+        if (selectedGame && landscapeGames.includes(selectedGame)) {
+          await ScreenOrientation.lock({ orientation: "landscape" });
+        } else {
+          await ScreenOrientation.unlock();
+        }
+      } catch {
+        const browserOrientation = window.screen?.orientation as unknown as { lock?: (orientation: string) => Promise<void>; unlock?: () => void };
+        if (selectedGame && landscapeGames.includes(selectedGame)) {
+          browserOrientation?.lock?.("landscape").catch(() => undefined);
+        } else {
+          browserOrientation?.unlock?.();
+        }
+      }
+    };
+
+    setOrientation();
+    return () => {
+      active = false;
+      import("@capacitor/screen-orientation").then(({ ScreenOrientation }) => ScreenOrientation.unlock()).catch(() => undefined);
+    };
+  }, [selectedGame]);
 
   const refreshUpdate = () => {
     checkForUpdate().then((info) => {
@@ -362,7 +392,7 @@ export function App() {
   };
 
   return (
-    <main className={`app-shell theme-${theme}`}>
+    <main className={`app-shell theme-${theme} ${selectedGame ? "in-game" : "in-hub"} ${isLandscapeGame ? "landscape-game-shell" : ""}`}>
       {!onboarding.done && (
         <section className="onboarding-modal" role="dialog" aria-modal="true" aria-label="Bienvenue dans Duelio">
           <div className="onboarding-card">
@@ -520,7 +550,7 @@ export function App() {
       )}
 
       {selectedGame ? (
-        <section className="game-stage" key={`${selectedGame}-${gameRun}`}>
+        <section className={`game-stage game-stage-${selectedGame} ${isLandscapeGame ? "landscape-game-stage" : ""}`} key={`${selectedGame}-${gameRun}`}>
           {lastResult && (
             <div className="result-panel">
               <div className="confetti" aria-hidden="true">

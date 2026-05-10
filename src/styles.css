@@ -56,6 +56,10 @@ button {
   animation: screen-in 260ms ease both;
 }
 
+.app-shell.landscape-game-shell {
+  width: min(100%, 960px);
+}
+
 .onboarding-modal {
   position: fixed;
   inset: 0;
@@ -1150,6 +1154,10 @@ button {
   animation: game-enter 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+.landscape-game-stage {
+  align-items: start;
+}
+
 .game-header {
   justify-content: space-between;
   min-height: 82px;
@@ -1443,6 +1451,8 @@ button {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
+  justify-self: center;
+  width: min(100%, 520px);
 }
 
 .memory-card,
@@ -1462,7 +1472,8 @@ button {
 }
 
 .battle-board {
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
+  width: min(100%, 500px);
 }
 
 .battle-cell {
@@ -1527,6 +1538,8 @@ button {
   padding: 8px;
   border-radius: 8px;
   background: #182225;
+  justify-self: center;
+  width: min(100%, 560px);
 }
 
 .checker-cell {
@@ -1664,6 +1677,8 @@ button {
   gap: 7px;
   padding: 12px;
   border-radius: 8px;
+  justify-self: center;
+  width: min(100%, 560px);
   background:
     linear-gradient(145deg, rgba(127, 183, 255, 0.22), transparent 42%),
     linear-gradient(180deg, #1e75c9, #164d92);
@@ -1671,6 +1686,112 @@ button {
     inset 0 2px 0 rgba(255, 255, 255, 0.2),
     inset 0 -8px 0 rgba(0, 0, 0, 0.16),
     0 18px 32px rgba(0, 0, 0, 0.24);
+}
+
+@media (orientation: landscape) {
+  .app-shell.landscape-game-shell {
+    padding: max(10px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom));
+  }
+
+  .landscape-game-shell .topbar {
+    margin-bottom: 10px;
+  }
+
+  .landscape-game-shell .topbar h1 {
+    font-size: clamp(1.2rem, 4vw, 1.8rem);
+  }
+
+  .landscape-game-stage {
+    gap: 10px;
+  }
+
+  .game-stage-connect4,
+  .game-stage-checkers,
+  .game-stage-battleship,
+  .game-stage-quarto {
+    grid-template-columns: minmax(170px, 230px) minmax(0, 1fr);
+  }
+
+  .game-stage-connect4 .game-header,
+  .game-stage-checkers .game-header,
+  .game-stage-battleship .game-header,
+  .game-stage-quarto .game-header {
+    min-height: 0;
+    padding: 12px;
+  }
+
+  .game-stage-connect4 .game-header h2,
+  .game-stage-checkers .game-header h2,
+  .game-stage-battleship .game-header h2,
+  .game-stage-quarto .game-header h2 {
+    font-size: clamp(1rem, 3vw, 1.35rem);
+  }
+
+  .game-stage-connect4 .result-panel,
+  .game-stage-checkers .result-panel,
+  .game-stage-battleship .result-panel,
+  .game-stage-quarto .result-panel {
+    grid-column: 1 / -1;
+  }
+
+  .game-stage-connect4 .connect-wrap {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    align-self: start;
+  }
+
+  .game-stage-checkers .duel-score,
+  .game-stage-battleship .duel-score,
+  .game-stage-quarto .quarto-current {
+    grid-column: 1;
+  }
+
+  .game-stage-checkers .checkers-board,
+  .game-stage-battleship .battle-board,
+  .game-stage-quarto .quarto-board {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
+  .connect-tray {
+    min-height: 42px;
+    padding: 8px 10px;
+  }
+
+  .connect-board {
+    width: min(100%, calc((100vh - 84px) * 1.12));
+    max-height: calc(100vh - 84px);
+    gap: clamp(3px, 1vh, 7px);
+    padding: clamp(6px, 1.6vh, 12px);
+  }
+
+  .checkers-board,
+  .battle-board,
+  .quarto-board {
+    width: min(100%, calc(100vh - 86px));
+    max-height: calc(100vh - 86px);
+  }
+}
+
+@media (orientation: portrait) {
+  .landscape-game-stage::before {
+    content: "Tourne le telephone pour mieux jouer";
+    display: grid;
+    place-items: center;
+    min-height: 38px;
+    border-radius: 8px;
+    background: rgba(127, 183, 255, 0.13);
+    color: #c5d2cf;
+    font-size: 0.88rem;
+    font-weight: 850;
+  }
+
+  .connect-board,
+  .checkers-board,
+  .battle-board,
+  .quarto-board {
+    max-height: calc(100vh - 230px);
+  }
 }
 
 .drop-button {
