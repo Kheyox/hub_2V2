@@ -225,20 +225,21 @@ button {
 
 .hero-panel {
   justify-content: space-between;
-  min-height: 150px;
-  padding: 20px;
-  border: 1px solid rgba(237, 243, 241, 0.1);
-  border-radius: 8px;
+  min-height: 132px;
+  padding: 8px 2px 18px;
+  border: 0;
+  border-radius: 0;
   background:
     linear-gradient(145deg, rgba(57, 198, 163, 0.14), transparent 48%),
     linear-gradient(320deg, rgba(243, 193, 75, 0.12), transparent 52%),
-    #182225;
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.18);
+    transparent;
+  box-shadow: none;
 }
 
 .hero-panel h2 {
-  max-width: 330px;
-  font-size: clamp(1.7rem, 9vw, 2.55rem);
+  max-width: 390px;
+  font-size: clamp(2.05rem, 11vw, 3.25rem);
+  line-height: 0.96;
 }
 
 .version-pill {
@@ -250,10 +251,105 @@ button {
   font-weight: 800;
 }
 
+.home-tabs {
+  position: sticky;
+  top: max(8px, env(safe-area-inset-top));
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin: 4px 0 14px;
+  padding: 5px;
+  border: 1px solid rgba(237, 243, 241, 0.08);
+  border-radius: 12px;
+  background: rgba(16, 21, 24, 0.82);
+  backdrop-filter: blur(14px);
+}
+
+.home-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 40px;
+  border-radius: 9px;
+  color: #9fb1ad;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.home-tabs button.active {
+  background: #edf3f1;
+  color: #101518;
+}
+
+.versus-strip {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 12px;
+}
+
+.versus-strip::before {
+  content: "VS";
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #edf3f1;
+  color: #101518;
+  font-size: 0.82rem;
+  font-weight: 950;
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.22);
+}
+
+.versus-strip div {
+  display: grid;
+  gap: 4px;
+  min-height: 84px;
+  padding: 12px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #1c282b, #141d20);
+}
+
+.versus-strip div:first-child {
+  grid-column: 1;
+}
+
+.versus-strip div:last-child {
+  grid-column: 3;
+  text-align: right;
+}
+
+.versus-strip .player-avatar {
+  position: static;
+}
+
+.versus-strip div:last-child .player-avatar {
+  justify-self: end;
+}
+
+.versus-strip strong {
+  font-size: 1.02rem;
+}
+
+.versus-strip small {
+  color: #9fb1ad;
+}
+
 .players-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  margin-top: 12px;
+}
+
+.clean-panel {
   margin-top: 12px;
 }
 
@@ -350,6 +446,9 @@ button {
 .resume-panel {
   grid-template-columns: 1fr 150px;
   align-items: center;
+  min-height: 104px;
+  margin-top: 12px;
+  padding: 16px;
   background:
     linear-gradient(145deg, rgba(57, 198, 163, 0.14), transparent 54%),
     #182225;
@@ -358,6 +457,19 @@ button {
 .resume-panel h3,
 .resume-panel span {
   margin: 0;
+}
+
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  margin: 18px 2px 8px;
+}
+
+.section-heading span,
+.empty-state {
+  color: #9fb1ad;
+  font-size: 0.92rem;
 }
 
 .resume-panel span {
@@ -484,18 +596,21 @@ button {
 
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
+  grid-template-columns: 1fr;
+  gap: 9px;
+  margin-top: 0;
 }
 
 .game-tile {
   position: relative;
   display: grid;
-  min-height: 146px;
-  padding: 14px;
+  grid-template-columns: 58px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 86px;
+  padding: 12px;
   border: 1px solid rgba(237, 243, 241, 0.08);
-  border-radius: 8px;
+  border-radius: 14px;
   background:
     linear-gradient(145deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent 45%),
     #182225;
@@ -512,11 +627,23 @@ button {
 .tile-icon {
   position: relative;
   z-index: 1;
-  width: 54px;
-  height: 54px;
-  border-radius: 8px;
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
   background: color-mix(in srgb, var(--accent) 18%, #182225);
   color: var(--accent);
+}
+
+.game-tile::after {
+  content: "Jouer";
+  position: relative;
+  z-index: 1;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(237, 243, 241, 0.1);
+  color: #c5d2cf;
+  font-size: 0.8rem;
+  font-weight: 850;
 }
 
 .tile-art {
@@ -535,25 +662,25 @@ button {
 }
 
 .tile-art i:nth-child(1) {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   right: 16px;
-  top: 16px;
+  top: 10px;
 }
 
 .tile-art i:nth-child(2) {
-  width: 26px;
-  height: 26px;
-  right: 62px;
-  top: 54px;
+  width: 22px;
+  height: 22px;
+  right: 72px;
+  top: 52px;
   opacity: 0.7;
 }
 
 .tile-art i:nth-child(3) {
-  width: 90px;
-  height: 90px;
-  right: -32px;
-  bottom: -26px;
+  width: 84px;
+  height: 84px;
+  right: -30px;
+  bottom: -38px;
   opacity: 0.22;
 }
 
@@ -580,8 +707,12 @@ button {
   gap: 5px;
 }
 
+.game-tile span:last-child {
+  align-self: center;
+}
+
 .game-tile strong {
-  font-size: 1.12rem;
+  font-size: 1.08rem;
 }
 
 .game-tile small,
@@ -590,6 +721,7 @@ button {
 }
 
 .score-note {
+  display: none;
   margin-top: 12px;
   padding: 14px 4px;
   line-height: 1.35;
@@ -1484,8 +1616,12 @@ button {
     padding-inline: 12px;
   }
 
-  .game-grid {
-    grid-template-columns: 1fr;
+  .home-tabs button {
+    font-size: 0;
+  }
+
+  .home-tabs button svg {
+    margin: 0;
   }
 
   .players-panel {

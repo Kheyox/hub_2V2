@@ -1,4 +1,4 @@
-import { ArrowLeft, Download, Play, RefreshCw, RotateCcw, ShieldAlert, Trophy, X } from "lucide-react";
+import { ArrowLeft, Download, Play, RefreshCw, RotateCcw, ShieldAlert, SlidersHorizontal, Trophy, UserRound, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Battleship } from "./components/Battleship";
 import { Checkers } from "./components/Checkers";
@@ -39,6 +39,7 @@ type AppStats = {
   gamesPlayed: [number, number];
   currentStreak: { player: PlayerIndex | null; count: number };
 };
+type HomeTab = "play" | "players" | "stats" | "settings";
 
 const defaultSettings: GameSettings = {
   matchesStart: 21,
@@ -101,6 +102,7 @@ export function App() {
   const [selectedGame, setSelectedGame] = useState<GameId | null>(null);
   const [gameRun, setGameRun] = useState(0);
   const [lastPlayed, setLastPlayed] = useState<GameId | null>(() => loadJson("duelio.lastPlayed", null as GameId | null));
+  const [homeTab, setHomeTab] = useState<HomeTab>("play");
   const [players, setPlayers] = useState<PlayerProfiles>(loadPlayers);
   const [stats, setStats] = useState<AppStats>(() => loadJson("duelio.stats", defaultStats));
   const [settings, setSettings] = useState<GameSettings>(() => loadJson("duelio.settings", defaultSettings));
@@ -288,7 +290,7 @@ export function App() {
         </section>
       )}
 
-      {update?.status === "blocked" && !selectedGame && (
+      {update?.status === "blocked" && !selectedGame && homeTab === "settings" && (
         <section className="update-banner warning">
           <ShieldAlert size={20} />
           <div>
@@ -363,112 +365,141 @@ export function App() {
           <div className="hero-panel">
             <div>
               <p className="kicker">Duelio</p>
-              <h2>Choisis un jeu, passe le telephone, garde le score.</h2>
+              <h2>Un telephone. Deux joueurs. Une revanche.</h2>
             </div>
             <div className="version-pill">v{APP_VERSION}</div>
           </div>
 
-          <section className="players-panel" aria-label="Joueurs">
-            {players.map((player, index) => (
-              <label key={index} className="player-card">
-                <span className={`player-avatar avatar-${index}`}>{player.name.slice(0, 1).toUpperCase() || index + 1}</span>
-                <span>Joueur {index + 1}</span>
-                <input value={player.name} maxLength={16} onChange={(event) => renamePlayer(index as PlayerIndex, event.target.value)} />
-                <strong>{player.wins} victoire{player.wins > 1 ? "s" : ""}</strong>
-                <small>Meilleur jeu: {bestGameFor(index as PlayerIndex)}</small>
-                <small>{stats.gamesPlayed[index as PlayerIndex]} partie{stats.gamesPlayed[index as PlayerIndex] > 1 ? "s" : ""} gagnee{stats.gamesPlayed[index as PlayerIndex] > 1 ? "s" : ""}</small>
-              </label>
-            ))}
-            <button className="reset-score" onClick={resetWins}>Remettre les victoires a zero</button>
-          </section>
+          <nav className="home-tabs" aria-label="Sections">
+            <button className={homeTab === "play" ? "active" : ""} onClick={() => setHomeTab("play")}><Play size={17} />Jouer</button>
+            <button className={homeTab === "players" ? "active" : ""} onClick={() => setHomeTab("players")}><UserRound size={17} />Joueurs</button>
+            <button className={homeTab === "stats" ? "active" : ""} onClick={() => setHomeTab("stats")}><Trophy size={17} />Stats</button>
+            <button className={homeTab === "settings" ? "active" : ""} onClick={() => setHomeTab("settings")}><SlidersHorizontal size={17} />Options</button>
+          </nav>
 
-          <section className="resume-panel">
-            <div>
-              <p className="kicker">Reprendre</p>
-              <h3>{lastPlayedGame ? lastPlayedGame.title : "Aucune partie lancee"}</h3>
-              <span>{stats.history[0] ? `Derniere: ${stats.history[0].winnerName} sur ${stats.history[0].gameTitle}` : "Lance un jeu pour le retrouver ici."}</span>
-            </div>
-            {lastPlayedGame && (
-              <button className="primary-action" onClick={() => openGame(lastPlayedGame.id)}>
-                <Play size={18} />
-                Reprendre
-              </button>
-            )}
-          </section>
+          {homeTab === "play" && (
+            <>
+              <section className="versus-strip">
+                {players.map((player, index) => (
+                  <div key={index}>
+                    <span className={`player-avatar avatar-${index}`}>{player.name.slice(0, 1).toUpperCase() || index + 1}</span>
+                    <strong>{player.name}</strong>
+                    <small>{player.wins} victoire{player.wins > 1 ? "s" : ""}</small>
+                  </div>
+                ))}
+              </section>
 
-          <section className="settings-panel">
-            <label>
-              Theme
-              <select value={theme} onChange={(event) => setTheme(event.target.value as ThemeName)}>
-                <option value="dark">Sombre</option>
-                <option value="arcade">Arcade</option>
-                <option value="wood">Bois/table</option>
-                <option value="neon">Neon</option>
-              </select>
-            </label>
-            <label>
-              Allumettes
-              <input type="number" min="9" max="41" step="2" value={settings.matchesStart} onChange={(event) => setSettings({ ...settings, matchesStart: Number(event.target.value) })} />
-            </label>
-            <label>
-              Morpion
-              <select value={settings.ticTacToeSize} onChange={(event) => setSettings({ ...settings, ticTacToeSize: Number(event.target.value) as 3 | 4 })}>
-                <option value={3}>3x3</option>
-                <option value={4}>4x4</option>
-              </select>
-            </label>
-            <label>
-              Pendu erreurs
-              <input type="number" min="4" max="10" value={settings.hangmanErrors} onChange={(event) => setSettings({ ...settings, hangmanErrors: Number(event.target.value) })} />
-            </label>
-            <button className={settings.sound ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, sound: !settings.sound })}>Sons</button>
-            <button className={settings.vibration ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, vibration: !settings.vibration })}>Vibrations</button>
-          </section>
+              <section className="resume-panel">
+                <div>
+                  <p className="kicker">Reprendre</p>
+                  <h3>{lastPlayedGame ? lastPlayedGame.title : "Choisis un jeu"}</h3>
+                  <span>{stats.history[0] ? `Derniere victoire: ${stats.history[0].winnerName}` : "Les parties se jouent directement a deux sur ce telephone."}</span>
+                </div>
+                {lastPlayedGame && (
+                  <button className="primary-action" onClick={() => openGame(lastPlayedGame.id)}>
+                    <Play size={18} />
+                    Reprendre
+                  </button>
+                )}
+              </section>
 
-          <section className="history-panel">
-            <div>
-              <p className="kicker">Historique</p>
-              <strong>{stats.currentStreak.player === null ? "Aucune serie" : `${players[stats.currentStreak.player].name}: ${stats.currentStreak.count} victoire${stats.currentStreak.count > 1 ? "s" : ""} de suite`}</strong>
-            </div>
-            {stats.history.slice(0, 5).map((entry) => (
-              <div key={entry.id} className="history-row">
-                <span>{entry.gameTitle}</span>
-                <strong>{entry.winnerName}</strong>
-                <small>{new Date(entry.date).toLocaleDateString("fr-FR")} - {entry.score}</small>
+              <section className="section-heading">
+                <p className="kicker">Jeux</p>
+                <span>{games.length} jeux disponibles</span>
+              </section>
+
+              <div className="game-grid">
+                {games.map((game) => {
+                  const Icon = game.icon;
+                  return (
+                    <button className="game-tile" key={game.id} data-game={game.id} onClick={() => openGame(game.id)} style={{ "--accent": game.accent } as React.CSSProperties}>
+                      <span className="tile-art" aria-hidden="true">
+                        <i />
+                        <i />
+                        <i />
+                      </span>
+                      <span className="tile-icon">
+                        <Icon size={24} />
+                      </span>
+                      <span>
+                        <strong>{game.title}</strong>
+                        <small>{game.subtitle}</small>
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-            ))}
-          </section>
+            </>
+          )}
 
-          <div className="game-grid">
-            {games.map((game) => {
-              const Icon = game.icon;
-              return (
-                <button className="game-tile" key={game.id} data-game={game.id} onClick={() => openGame(game.id)} style={{ "--accent": game.accent } as React.CSSProperties}>
-                  <span className="tile-art" aria-hidden="true">
-                    <i />
-                    <i />
-                    <i />
-                  </span>
-                  <span className="tile-icon">
-                    <Icon size={24} />
-                  </span>
-                  <span>
-                    <strong>{game.title}</strong>
-                    <small>{game.subtitle}</small>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          {homeTab === "players" && (
+            <section className="players-panel clean-panel" aria-label="Joueurs">
+              {players.map((player, index) => (
+                <label key={index} className="player-card">
+                  <span className={`player-avatar avatar-${index}`}>{player.name.slice(0, 1).toUpperCase() || index + 1}</span>
+                  <span>Joueur {index + 1}</span>
+                  <input value={player.name} maxLength={16} onChange={(event) => renamePlayer(index as PlayerIndex, event.target.value)} />
+                  <strong>{player.wins} victoire{player.wins > 1 ? "s" : ""}</strong>
+                  <small>Meilleur jeu: {bestGameFor(index as PlayerIndex)}</small>
+                </label>
+              ))}
+              <button className="reset-score" onClick={resetWins}>Remettre les victoires a zero</button>
+            </section>
+          )}
 
-          <div className="score-note">
-            <Trophy size={20} />
-            <span>Architecture prevue pour ajouter d'autres jeux tour par tour sans refaire le hub.</span>
-          </div>
-          <button className="update-check" onClick={refreshUpdate}>
-            <RefreshCw size={18} />
-            Verifier les mises a jour
-          </button>
+          {homeTab === "stats" && (
+            <section className="history-panel clean-panel">
+              <div>
+                <p className="kicker">Serie actuelle</p>
+                <strong>{stats.currentStreak.player === null ? "Aucune serie" : `${players[stats.currentStreak.player].name}: ${stats.currentStreak.count} victoire${stats.currentStreak.count > 1 ? "s" : ""} de suite`}</strong>
+              </div>
+              {stats.history.length === 0 && <p className="empty-state">Aucune partie terminee pour l'instant.</p>}
+              {stats.history.slice(0, 10).map((entry) => (
+                <div key={entry.id} className="history-row">
+                  <span>{entry.gameTitle}</span>
+                  <strong>{entry.winnerName}</strong>
+                  <small>{new Date(entry.date).toLocaleDateString("fr-FR")} - {entry.score}</small>
+                </div>
+              ))}
+            </section>
+          )}
+
+          {homeTab === "settings" && (
+            <>
+              <section className="settings-panel clean-panel">
+                <label>
+                  Theme
+                  <select value={theme} onChange={(event) => setTheme(event.target.value as ThemeName)}>
+                    <option value="dark">Sombre</option>
+                    <option value="arcade">Arcade</option>
+                    <option value="wood">Bois/table</option>
+                    <option value="neon">Neon</option>
+                  </select>
+                </label>
+                <label>
+                  Allumettes
+                  <input type="number" min="9" max="41" step="2" value={settings.matchesStart} onChange={(event) => setSettings({ ...settings, matchesStart: Number(event.target.value) })} />
+                </label>
+                <label>
+                  Morpion
+                  <select value={settings.ticTacToeSize} onChange={(event) => setSettings({ ...settings, ticTacToeSize: Number(event.target.value) as 3 | 4 })}>
+                    <option value={3}>3x3</option>
+                    <option value={4}>4x4</option>
+                  </select>
+                </label>
+                <label>
+                  Pendu erreurs
+                  <input type="number" min="4" max="10" value={settings.hangmanErrors} onChange={(event) => setSettings({ ...settings, hangmanErrors: Number(event.target.value) })} />
+                </label>
+                <button className={settings.sound ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, sound: !settings.sound })}>Sons</button>
+                <button className={settings.vibration ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, vibration: !settings.vibration })}>Vibrations</button>
+              </section>
+              <button className="update-check" onClick={refreshUpdate}>
+                <RefreshCw size={18} />
+                Verifier les mises a jour
+              </button>
+            </>
+          )}
         </section>
       )}
     </main>
