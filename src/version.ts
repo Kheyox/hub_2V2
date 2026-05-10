@@ -1,3 +1,3 @@
-export const APP_VERSION = "0.1.17";
+export const APP_VERSION = "0.1.18";
 export const GITHUB_REPO = "Kheyox/hub_2V2";
 export const UPDATE_MANIFEST_URL = "https://kheyox.github.io/hub_2V2/update-manifest.json";
