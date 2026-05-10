@@ -59,13 +59,23 @@ export function ConnectFour() {
   return (
     <>
       <GameHeader title="Puissance 4" status={status} onReset={() => { setBoard(Array(rows * cols).fill(null)); setTurn("R"); }} />
-      <div className="connect-board">
-        {Array.from({ length: cols }).map((_, col) => (
-          <button key={`drop-${col}`} className="drop-button" onClick={() => drop(col)} aria-label={`Colonne ${col + 1}`} />
-        ))}
-        {board.map((cell, index) => (
-          <button key={index} className={`connect-cell ${cell || ""}`} onClick={() => drop(index % cols)} aria-label={`Cellule ${index + 1}`} />
-        ))}
+      <div className={`connect-wrap ${turn === "R" ? "red-turn" : "yellow-turn"}`}>
+        <div className="connect-tray" aria-hidden="true">
+          <span className="next-token" />
+          <span>{winner ? "Partie terminee" : `Jeton ${turn === "R" ? "rouge" : "jaune"}`}</span>
+        </div>
+        <div className="connect-board">
+          {Array.from({ length: cols }).map((_, col) => (
+            <button key={`drop-${col}`} className="drop-button" onClick={() => drop(col)} aria-label={`Jouer colonne ${col + 1}`}>
+              <span />
+            </button>
+          ))}
+          {board.map((cell, index) => (
+            <button key={index} className={`connect-cell ${cell || ""}`} onClick={() => drop(index % cols)} aria-label={`Cellule ${index + 1}`}>
+              {cell && <span className="connect-token" />}
+            </button>
+          ))}
+        </div>
       </div>
     </>
   );

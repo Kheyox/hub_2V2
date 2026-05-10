@@ -29,21 +29,26 @@ const scoreFor = (category: Category, dice: number[]) => {
 export function Yatzy() {
   const [dice, setDice] = useState([1, 1, 1, 1, 1]);
   const [held, setHeld] = useState([false, false, false, false, false]);
+  const [rolling, setRolling] = useState(false);
   const [rolls, setRolls] = useState(0);
   const [player, setPlayer] = useState<Player>(0);
   const [scores, setScores] = useState<[Scores, Scores]>([emptyScores(), emptyScores()]);
   const totals = useMemo(() => scores.map((sheet) => Object.values(sheet).reduce<number>((sum, value) => sum + (value ?? 0), 0)), [scores]);
   const finished = scores.every((sheet) => Object.values(sheet).every((value) => value !== null));
-  const status = finished ? `Fin: J1 ${totals[0]} - J2 ${totals[1]}` : `Joueur ${player + 1} · lancer ${rolls}/3`;
+  const status = finished ? `Fin: J1 ${totals[0]} - J2 ${totals[1]}` : `Joueur ${player + 1} - lancer ${rolls}/3`;
 
   const roll = () => {
-    if (rolls >= 3 || finished) return;
-    setDice(rollDice(held, dice));
-    setRolls(rolls + 1);
+    if (rolls >= 3 || finished || rolling) return;
+    setRolling(true);
+    window.setTimeout(() => {
+      setDice((current) => rollDice(held, current));
+      setRolls((current) => current + 1);
+      setRolling(false);
+    }, 430);
   };
 
   const score = (category: Category) => {
-    if (rolls === 0 || scores[player][category] !== null || finished) return;
+    if (rolls === 0 || scores[player][category] !== null || finished || rolling) return;
     const next: [Scores, Scores] = [{ ...scores[0] }, { ...scores[1] }];
     next[player][category] = scoreFor(category, dice);
     setScores(next);
@@ -56,6 +61,7 @@ export function Yatzy() {
   const reset = () => {
     setDice([1, 1, 1, 1, 1]);
     setHeld([false, false, false, false, false]);
+    setRolling(false);
     setRolls(0);
     setPlayer(0);
     setScores([emptyScores(), emptyScores()]);
@@ -64,20 +70,30 @@ export function Yatzy() {
   return (
     <>
       <GameHeader title="Yatzy" status={status} onReset={reset} />
-      <div className="dice-row">
+      <div className={rolling ? "dice-row rolling" : "dice-row"}>
         {dice.map((value, index) => (
-          <button key={index} className={held[index] ? "die held" : "die"} onClick={() => setHeld(held.map((item, itemIndex) => (itemIndex === index ? !item : item)))}>
-            {value}
+          <button
+            key={index}
+            className={held[index] ? "die held" : "die"}
+            disabled={rolling}
+            onClick={() => setHeld(held.map((item, itemIndex) => (itemIndex === index ? !item : item)))}
+            aria-label={`De ${index + 1}: ${value}${held[index] ? ", garde" : ""}`}
+          >
+            <span className={`pip-face face-${value}`}>
+              {Array.from({ length: value }).map((_, pipIndex) => (
+                <span key={pipIndex} className="pip" />
+              ))}
+            </span>
           </button>
         ))}
       </div>
-      <button className="primary-action" disabled={rolls >= 3 || finished} onClick={roll}>
-        Lancer
+      <button className="primary-action" disabled={rolls >= 3 || finished || rolling} onClick={roll}>
+        {rolling ? "Ca roule..." : "Lancer"}
       </button>
       <div className="score-table">
         <div className="score-row head"><span>Categorie</span><span>J1</span><span>J2</span></div>
         {categories.map((category) => (
-          <button key={category.id} className="score-row" onClick={() => score(category.id)} disabled={scores[player][category.id] !== null || rolls === 0 || finished}>
+          <button key={category.id} className="score-row" onClick={() => score(category.id)} disabled={scores[player][category.id] !== null || rolls === 0 || finished || rolling}>
             <span>{category.label}</span>
             <span>{scores[0][category.id] ?? "-"}</span>
             <span>{scores[1][category.id] ?? "-"}</span>
