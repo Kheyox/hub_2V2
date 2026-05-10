@@ -53,11 +53,15 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
+          ANDROID_KEYSTORE_BASE64="${ANDROID_KEYSTORE_BASE64#ANDROID_KEYSTORE_BASE64=}"
+          ANDROID_KEYSTORE_PASSWORD="${ANDROID_KEYSTORE_PASSWORD#ANDROID_KEYSTORE_PASSWORD=}"
+          ANDROID_KEY_ALIAS="${ANDROID_KEY_ALIAS#ANDROID_KEY_ALIAS=}"
+          ANDROID_KEY_PASSWORD="${ANDROID_KEY_PASSWORD#ANDROID_KEY_PASSWORD=}"
           test -n "$ANDROID_KEYSTORE_BASE64" || (echo "Missing ANDROID_KEYSTORE_BASE64 secret" && exit 1)
           test -n "$ANDROID_KEYSTORE_PASSWORD" || (echo "Missing ANDROID_KEYSTORE_PASSWORD secret" && exit 1)
           test -n "$ANDROID_KEY_ALIAS" || (echo "Missing ANDROID_KEY_ALIAS secret" && exit 1)
           test -n "$ANDROID_KEY_PASSWORD" || (echo "Missing ANDROID_KEY_PASSWORD secret" && exit 1)
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/release.keystore
+          printf "%s" "$ANDROID_KEYSTORE_BASE64" | tr -d '\r\n ' | base64 --decode > android/release.keystore
 
       - name: Build installable APK
         working-directory: android
