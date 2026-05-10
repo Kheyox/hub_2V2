@@ -24,6 +24,8 @@ button {
   border: 0;
   color: inherit;
   font: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .app-shell {
@@ -31,6 +33,7 @@ button {
   min-height: 100vh;
   margin: 0 auto;
   padding: max(18px, env(safe-area-inset-top)) 16px max(22px, env(safe-area-inset-bottom));
+  animation: screen-in 260ms ease both;
 }
 
 .topbar,
@@ -97,8 +100,21 @@ button {
 
 .icon-button:active,
 .game-tile:active,
-.primary-action:active {
+.primary-action:active,
+.take-button:active,
+.update-check:active {
   transform: scale(0.98);
+}
+
+.icon-button,
+.game-tile,
+.primary-action,
+.update-check,
+.take-button,
+.keyboard button,
+.score-row,
+.ttt-cell {
+  transition: transform 150ms ease, background 180ms ease, box-shadow 180ms ease, border-color 180ms ease, opacity 180ms ease;
 }
 
 .update-banner {
@@ -234,6 +250,11 @@ button {
   text-align: left;
 }
 
+.game-tile:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 34%, rgba(237, 243, 241, 0.08));
+}
+
 .tile-icon {
   width: 54px;
   height: 54px;
@@ -280,6 +301,7 @@ button {
 .game-stage {
   display: grid;
   gap: 18px;
+  animation: screen-in 220ms ease both;
 }
 
 .game-header {
@@ -328,6 +350,154 @@ button {
   background:
     radial-gradient(circle at 50% 50%, rgba(57, 198, 163, 0.18), transparent 58%),
     #182225;
+}
+
+.reversi-score {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.reversi-score span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  border-radius: 8px;
+  background: #182225;
+  color: #c5d2cf;
+  font-weight: 850;
+}
+
+.reversi-board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  padding: 10px;
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(57, 198, 163, 0.18), transparent 44%),
+    linear-gradient(180deg, #1c7b55, #10543b);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -8px 0 rgba(0, 0, 0, 0.18),
+    0 18px 32px rgba(0, 0, 0, 0.24);
+}
+
+.reversi-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.08)),
+    rgba(8, 47, 35, 0.58);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.reversi-cell.valid::after {
+  content: "";
+  width: 32%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: rgba(237, 243, 241, 0.28);
+  box-shadow: 0 0 0 5px rgba(237, 243, 241, 0.08);
+}
+
+.reversi-disc {
+  display: inline-block;
+  width: 72%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  animation: disc-flip 220ms ease both;
+}
+
+.reversi-score .reversi-disc {
+  width: 22px;
+}
+
+.reversi-disc.B {
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.24), transparent 24%),
+    linear-gradient(145deg, #2c3536, #050809);
+  box-shadow: inset -3px -4px 8px rgba(0, 0, 0, 0.42), 0 5px 10px rgba(0, 0, 0, 0.26);
+}
+
+.reversi-disc.W {
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.92), transparent 28%),
+    linear-gradient(145deg, #ffffff, #cdd6d2);
+  box-shadow: inset -3px -4px 8px rgba(0, 0, 0, 0.12), 0 5px 10px rgba(0, 0, 0, 0.22);
+}
+
+.matches-board {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 9px;
+  padding: 18px 14px;
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(239, 122, 89, 0.1), transparent 48%),
+    #182225;
+  min-height: 230px;
+  align-items: end;
+}
+
+.match-stick {
+  position: relative;
+  justify-self: center;
+  width: 9px;
+  height: 68px;
+  border-radius: 99px;
+  background: #2b3436;
+  opacity: 0.22;
+  transform: translateY(8px) scaleY(0.92);
+  transition: transform 190ms ease, opacity 190ms ease;
+}
+
+.match-stick::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px 999px 999px 3px;
+  background: #3d4446;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.match-stick.lit {
+  background: linear-gradient(90deg, #c98c4d, #f0c47a, #9b6336);
+  opacity: 1;
+  transform: translateY(0) scaleY(1);
+}
+
+.match-stick.lit::before {
+  background:
+    radial-gradient(circle at 38% 28%, #ffe19a, transparent 28%),
+    linear-gradient(145deg, #ef7a59, #a92d25);
+}
+
+.take-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.take-button {
+  min-height: 52px;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #f0f5f2, #cfdad6);
+  color: #101518;
+  font-weight: 900;
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.18);
+}
+
+.take-button:disabled {
+  opacity: 0.42;
 }
 
 .connect-wrap {
@@ -618,6 +788,37 @@ button {
 
   100% {
     transform: translateY(0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes disc-flip {
+  from {
+    transform: scaleX(0.18) rotateY(80deg);
+  }
+
+  to {
+    transform: scaleX(1) rotateY(0);
+  }
+}
+
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
   }
 }
 

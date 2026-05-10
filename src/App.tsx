@@ -2,6 +2,8 @@ import { ArrowLeft, Download, RefreshCw, RotateCcw, ShieldAlert, Trophy, X } fro
 import { useEffect, useMemo, useState } from "react";
 import { ConnectFour } from "./components/ConnectFour";
 import { Hangman } from "./components/Hangman";
+import { Matches } from "./components/Matches";
+import { Reversi } from "./components/Reversi";
 import { TicTacToe } from "./components/TicTacToe";
 import { Yatzy } from "./components/Yatzy";
 import { games, type GameId } from "./games";
@@ -12,7 +14,9 @@ const gameMap: Record<GameId, JSX.Element> = {
   tictactoe: <TicTacToe />,
   connect4: <ConnectFour />,
   hangman: <Hangman />,
-  yatzy: <Yatzy />
+  yatzy: <Yatzy />,
+  reversi: <Reversi />,
+  matches: <Matches />
 };
 
 export function App() {

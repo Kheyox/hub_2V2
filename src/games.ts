@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
-import { CircleDot, Dice5, Grid3X3, Rows3 } from "lucide-react";
+import { CircleDot, Dice5, Flame, Grid3X3, Orbit, Rows3 } from "lucide-react";
 
-export type GameId = "tictactoe" | "connect4" | "hangman" | "yatzy";
+export type GameId = "tictactoe" | "connect4" | "hangman" | "yatzy" | "reversi" | "matches";
 
 export type GameDefinition = {
   id: GameId;
@@ -39,5 +39,19 @@ export const games: GameDefinition[] = [
     subtitle: "Des, choix, sang-froid",
     icon: Dice5,
     accent: "#7fb7ff"
+  },
+  {
+    id: "reversi",
+    title: "Reversi",
+    subtitle: "Retourne le plateau",
+    icon: Orbit,
+    accent: "#39c6a3"
+  },
+  {
+    id: "matches",
+    title: "Allumettes",
+    subtitle: "Ne prends pas la derniere",
+    icon: Flame,
+    accent: "#ef7a59"
   }
 ];
