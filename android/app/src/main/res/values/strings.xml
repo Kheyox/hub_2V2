@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Hub 2V2</string>
-    <string name="title_activity_main">Hub 2V2</string>
+    <string name="app_name">Duelio</string>
+    <string name="title_activity_main">Duelio</string>
     <string name="package_name">com.kheyox.hub2v2</string>
     <string name="custom_url_scheme">com.kheyox.hub2v2</string>
 </resources>

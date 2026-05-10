@@ -87,8 +87,12 @@ button {
 }
 
 .brand-mark {
-  color: #39c6a3;
+  color: #edf3f1;
   font-weight: 900;
+  background:
+    radial-gradient(circle at 62% 34%, #f5c84c 0 9%, transparent 10%),
+    radial-gradient(circle at 38% 64%, #e84834 0 12%, transparent 13%),
+    linear-gradient(145deg, #1f75d6, #182225);
 }
 
 .icon-button:active,
@@ -104,6 +108,12 @@ button {
   border: 1px solid rgba(127, 183, 255, 0.35);
   border-radius: 8px;
   background: rgba(127, 183, 255, 0.13);
+}
+
+.update-banner.warning {
+  align-items: flex-start;
+  border-color: rgba(245, 200, 76, 0.36);
+  background: rgba(245, 200, 76, 0.12);
 }
 
 .update-banner div {
@@ -131,6 +141,50 @@ button {
 
 .update-banner button {
   min-width: 76px;
+}
+
+.update-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: end center;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.48);
+}
+
+.update-card {
+  position: relative;
+  width: min(100%, 480px);
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid rgba(237, 243, 241, 0.12);
+  border-radius: 8px;
+  background: linear-gradient(145deg, #1f2b2f, #121a1d);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.38);
+}
+
+.update-card h2,
+.update-card p {
+  margin: 0;
+}
+
+.update-card p {
+  color: #c5d2cf;
+  line-height: 1.42;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #263437;
 }
 
 .hero-panel {
@@ -207,6 +261,20 @@ button {
   margin-top: 12px;
   padding: 14px 4px;
   line-height: 1.35;
+}
+
+.update-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 4px;
+  border-radius: 8px;
+  background: #1d282b;
+  color: #c5d2cf;
+  font-weight: 850;
 }
 
 .game-stage {

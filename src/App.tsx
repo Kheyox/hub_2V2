@@ -1,4 +1,4 @@
-import { ArrowLeft, Download, RefreshCw, RotateCcw, Trophy } from "lucide-react";
+import { ArrowLeft, Download, RefreshCw, RotateCcw, ShieldAlert, Trophy, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ConnectFour } from "./components/ConnectFour";
 import { Hangman } from "./components/Hangman";
@@ -18,11 +18,22 @@ const gameMap: Record<GameId, JSX.Element> = {
 export function App() {
   const [selectedGame, setSelectedGame] = useState<GameId | null>(null);
   const [update, setUpdate] = useState<UpdateInfo | null>(null);
+  const [updatePanelOpen, setUpdatePanelOpen] = useState(false);
   const currentGame = useMemo(() => games.find((game) => game.id === selectedGame), [selectedGame]);
 
   useEffect(() => {
-    checkForUpdate().then(setUpdate);
+    checkForUpdate().then((info) => {
+      setUpdate(info);
+      setUpdatePanelOpen(info.status === "available");
+    });
   }, []);
+
+  const refreshUpdate = () => {
+    checkForUpdate().then((info) => {
+      setUpdate(info);
+      setUpdatePanelOpen(true);
+    });
+  };
 
   return (
     <main className="app-shell">
@@ -32,11 +43,11 @@ export function App() {
             <ArrowLeft size={22} />
           </button>
         ) : (
-          <div className="brand-mark">H2</div>
+          <div className="brand-mark">D</div>
         )}
 
         <div>
-          <p className="kicker">Hub 2V2</p>
+          <p className="kicker">Duelio</p>
           <h1>{currentGame?.title || "Jeux 1v1 locaux"}</h1>
         </div>
 
@@ -49,12 +60,65 @@ export function App() {
         <section className="update-banner">
           <div>
             <strong>Version {update.latestVersion} disponible</strong>
-            <span>Tu es en {update.currentVersion}. L'APK peut etre ouverte depuis la release GitHub.</span>
+            <span>Tu es en {update.currentVersion}. Ouvre l'APK, puis Android te proposera l'installation.</span>
           </div>
           <button onClick={() => window.open(update.apkUrl || update.releaseUrl, "_blank")} aria-label="Telecharger la mise a jour">
             <Download size={18} />
-            Maj
+            Installer
           </button>
+        </section>
+      )}
+
+      {update?.status === "blocked" && !selectedGame && (
+        <section className="update-banner warning">
+          <ShieldAlert size={20} />
+          <div>
+            <strong>Mises a jour non verifiables</strong>
+            <span>{update.reason}</span>
+          </div>
+          <button onClick={() => window.open(update.releaseUrl, "_blank")} aria-label="Ouvrir les releases">
+            Releases
+          </button>
+        </section>
+      )}
+
+      {updatePanelOpen && update && (
+        <section className="update-modal" role="dialog" aria-modal="true" aria-label="Mise a jour">
+          <div className="update-card">
+            <button className="modal-close" onClick={() => setUpdatePanelOpen(false)} aria-label="Fermer">
+              <X size={18} />
+            </button>
+            <p className="kicker">Mise a jour</p>
+            {update.status === "available" && (
+              <>
+                <h2>Version {update.latestVersion} disponible</h2>
+                <p>Version installee: {update.currentVersion}. Le bouton ouvre l'APK de la release; Android affichera ensuite l'installation.</p>
+                <button className="primary-action" onClick={() => window.open(update.apkUrl || update.releaseUrl, "_blank")}>
+                  <Download size={18} />
+                  Installer la mise a jour
+                </button>
+              </>
+            )}
+            {update.status === "current" && (
+              <>
+                <h2>Duelio est a jour</h2>
+                <p>Version installee: {update.currentVersion}. Derniere release: {update.latestVersion}.</p>
+              </>
+            )}
+            {update.status === "blocked" && (
+              <>
+                <h2>Verification bloquee</h2>
+                <p>{update.reason}</p>
+                <button className="primary-action" onClick={() => window.open(update.releaseUrl, "_blank")}>Ouvrir les releases</button>
+              </>
+            )}
+            {update.status === "offline" && (
+              <>
+                <h2>Verification impossible</h2>
+                <p>{update.reason}</p>
+              </>
+            )}
+          </div>
         </section>
       )}
 
@@ -64,7 +128,7 @@ export function App() {
         <section className="hub">
           <div className="hero-panel">
             <div>
-              <p className="kicker">Meme telephone</p>
+              <p className="kicker">Duelio</p>
               <h2>Choisis un jeu, passe le telephone, garde le score.</h2>
             </div>
             <div className="version-pill">v{APP_VERSION}</div>
@@ -91,6 +155,10 @@ export function App() {
             <Trophy size={20} />
             <span>Architecture prevue pour ajouter d'autres jeux tour par tour sans refaire le hub.</span>
           </div>
+          <button className="update-check" onClick={refreshUpdate}>
+            <RefreshCw size={18} />
+            Verifier les mises a jour
+          </button>
         </section>
       )}
     </main>

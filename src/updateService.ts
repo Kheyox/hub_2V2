@@ -10,7 +10,8 @@ export type UpdateInfo =
       notes: string;
     }
   | { status: "current"; currentVersion: string; latestVersion: string }
-  | { status: "offline"; currentVersion: string };
+  | { status: "blocked"; currentVersion: string; reason: string; releaseUrl: string }
+  | { status: "offline"; currentVersion: string; reason: string };
 
 type GitHubRelease = {
   tag_name: string;
@@ -35,13 +36,24 @@ const compareVersions = (a: string, b: string) => {
 };
 
 export const checkForUpdate = async (): Promise<UpdateInfo> => {
+  const releaseUrl = `https://github.com/${GITHUB_REPO}/releases/latest`;
+
   try {
     const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
       headers: { Accept: "application/vnd.github+json" }
     });
 
     if (!response.ok) {
-      return { status: "offline", currentVersion: APP_VERSION };
+      if (response.status === 401 || response.status === 403 || response.status === 404) {
+        return {
+          status: "blocked",
+          currentVersion: APP_VERSION,
+          reason: "GitHub ne laisse pas l'app lire les releases. Le depot doit etre public, ou il faut un flux de mise a jour public.",
+          releaseUrl
+        };
+      }
+
+      return { status: "offline", currentVersion: APP_VERSION, reason: "Verification GitHub indisponible pour le moment." };
     }
 
     const release = (await response.json()) as GitHubRelease;
@@ -61,6 +73,6 @@ export const checkForUpdate = async (): Promise<UpdateInfo> => {
 
     return { status: "current", currentVersion: APP_VERSION, latestVersion };
   } catch {
-    return { status: "offline", currentVersion: APP_VERSION };
+    return { status: "offline", currentVersion: APP_VERSION, reason: "Pas de connexion ou verification bloquee." };
   }
 };
