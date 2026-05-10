@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { GameHeader } from "../App";
+import type { GameProps, PlayerIndex } from "../playerTypes";
 
 type Player = "B" | "W";
 type Cell = Player | null;
@@ -61,17 +62,25 @@ const score = (board: Cell[]) => ({
   W: board.filter((cell) => cell === "W").length
 });
 
-export function Reversi() {
+export function Reversi({ players, onWin }: GameProps) {
   const [board, setBoard] = useState<Cell[]>(initialBoard);
   const [player, setPlayer] = useState<Player>("B");
+  const reportedWinner = useRef<PlayerIndex | null>(null);
   const moves = useMemo(() => validMoves(board, player), [board, player]);
   const nextMoves = useMemo(() => validMoves(board, other(player)), [board, player]);
   const points = useMemo(() => score(board), [board]);
   const finished = board.every(Boolean) || (!moves.length && !nextMoves.length);
   const skipped = !finished && !moves.length;
-  const leader = points.B === points.W ? "Egalite" : points.B > points.W ? "Noir mene" : "Blanc mene";
-  const status = finished ? `${leader} ${points.B}-${points.W}` : skipped ? `Passe: ${player === "B" ? "Noir" : "Blanc"}` : `${player === "B" ? "Noir" : "Blanc"} joue`;
+  const winnerIndex = points.B === points.W ? null : ((points.B > points.W ? 0 : 1) as PlayerIndex);
+  const leader = winnerIndex === null ? "Egalite" : `${players[winnerIndex].name} mene`;
+  const status = finished ? `${leader} ${points.B}-${points.W}` : skipped ? `Passe: ${player === "B" ? players[0].name : players[1].name}` : `${player === "B" ? players[0].name : players[1].name} joue`;
   const validSet = new Map(moves.map((move) => [move.index, move.flips]));
+
+  useEffect(() => {
+    if (!finished || winnerIndex === null || reportedWinner.current === winnerIndex) return;
+    reportedWinner.current = winnerIndex;
+    onWin(winnerIndex);
+  }, [finished, winnerIndex, onWin]);
 
   const play = (index: number) => {
     const flips = validSet.get(index);
@@ -87,6 +96,7 @@ export function Reversi() {
   };
 
   const reset = () => {
+    reportedWinner.current = null;
     setBoard(initialBoard());
     setPlayer("B");
   };
@@ -95,8 +105,8 @@ export function Reversi() {
     <>
       <GameHeader title="Reversi" status={status} onReset={reset} />
       <div className="reversi-score">
-        <span><i className="reversi-disc B" />Noir {points.B}</span>
-        <span><i className="reversi-disc W" />Blanc {points.W}</span>
+        <span><i className="reversi-disc B" />{players[0].name} {points.B}</span>
+        <span><i className="reversi-disc W" />{players[1].name} {points.W}</span>
       </div>
       <div className="reversi-board">
         {board.map((cell, index) => (

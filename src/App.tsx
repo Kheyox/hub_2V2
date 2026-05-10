@@ -7,23 +7,48 @@ import { Reversi } from "./components/Reversi";
 import { TicTacToe } from "./components/TicTacToe";
 import { Yatzy } from "./components/Yatzy";
 import { games, type GameId } from "./games";
+import type { GameProps, PlayerIndex, PlayerProfiles } from "./playerTypes";
 import { checkForUpdate, type UpdateInfo } from "./updateService";
 import { APP_VERSION } from "./version";
 
-const gameMap: Record<GameId, JSX.Element> = {
-  tictactoe: <TicTacToe />,
-  connect4: <ConnectFour />,
-  hangman: <Hangman />,
-  yatzy: <Yatzy />,
-  reversi: <Reversi />,
-  matches: <Matches />
+const defaultPlayers: PlayerProfiles = [
+  { name: "Joueur 1", wins: 0 },
+  { name: "Joueur 2", wins: 0 }
+];
+
+const loadPlayers = (): PlayerProfiles => {
+  try {
+    const stored = window.localStorage.getItem("duelio.players");
+    if (!stored) return defaultPlayers;
+    const parsed = JSON.parse(stored) as PlayerProfiles;
+    return [
+      { name: parsed[0]?.name || defaultPlayers[0].name, wins: Number(parsed[0]?.wins || 0) },
+      { name: parsed[1]?.name || defaultPlayers[1].name, wins: Number(parsed[1]?.wins || 0) }
+    ];
+  } catch {
+    return defaultPlayers;
+  }
+};
+
+const gameMap: Record<GameId, (props: GameProps) => JSX.Element> = {
+  tictactoe: (props) => <TicTacToe {...props} />,
+  connect4: (props) => <ConnectFour {...props} />,
+  hangman: () => <Hangman />,
+  yatzy: (props) => <Yatzy {...props} />,
+  reversi: (props) => <Reversi {...props} />,
+  matches: (props) => <Matches {...props} />
 };
 
 export function App() {
   const [selectedGame, setSelectedGame] = useState<GameId | null>(null);
+  const [players, setPlayers] = useState<PlayerProfiles>(loadPlayers);
   const [update, setUpdate] = useState<UpdateInfo | null>(null);
   const [updatePanelOpen, setUpdatePanelOpen] = useState(false);
   const currentGame = useMemo(() => games.find((game) => game.id === selectedGame), [selectedGame]);
+
+  useEffect(() => {
+    window.localStorage.setItem("duelio.players", JSON.stringify(players));
+  }, [players]);
 
   useEffect(() => {
     checkForUpdate().then((info) => {
@@ -37,6 +62,29 @@ export function App() {
       setUpdate(info);
       setUpdatePanelOpen(true);
     });
+  };
+
+  const renamePlayer = (index: PlayerIndex, name: string) => {
+    setPlayers((current) => {
+      const next: PlayerProfiles = [{ ...current[0] }, { ...current[1] }];
+      next[index].name = name;
+      return next;
+    });
+  };
+
+  const recordWin = (winner: PlayerIndex) => {
+    setPlayers((current) => {
+      const next: PlayerProfiles = [{ ...current[0] }, { ...current[1] }];
+      next[winner].wins += 1;
+      return next;
+    });
+  };
+
+  const resetWins = () => {
+    setPlayers((current) => [
+      { ...current[0], wins: 0 },
+      { ...current[1], wins: 0 }
+    ]);
   };
 
   return (
@@ -127,7 +175,7 @@ export function App() {
       )}
 
       {selectedGame ? (
-        <section className="game-stage">{gameMap[selectedGame]}</section>
+        <section className="game-stage">{gameMap[selectedGame]({ players, onWin: recordWin })}</section>
       ) : (
         <section className="hub">
           <div className="hero-panel">
@@ -137,6 +185,17 @@ export function App() {
             </div>
             <div className="version-pill">v{APP_VERSION}</div>
           </div>
+
+          <section className="players-panel" aria-label="Joueurs">
+            {players.map((player, index) => (
+              <label key={index} className="player-card">
+                <span>Joueur {index + 1}</span>
+                <input value={player.name} maxLength={16} onChange={(event) => renamePlayer(index as PlayerIndex, event.target.value)} />
+                <strong>{player.wins} victoire{player.wins > 1 ? "s" : ""}</strong>
+              </label>
+            ))}
+            <button className="reset-score" onClick={resetWins}>Remettre les victoires a zero</button>
+          </section>
 
           <div className="game-grid">
             {games.map((game) => {

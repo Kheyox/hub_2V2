@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { GameHeader } from "../App";
+import type { GameProps, PlayerIndex } from "../playerTypes";
 
 type Player = 0 | 1;
 type Category = "ones" | "twos" | "threes" | "fours" | "fives" | "sixes" | "chance" | "yatzy";
@@ -26,16 +27,24 @@ const scoreFor = (category: Category, dice: number[]) => {
   return dice.filter((value) => value === target).reduce((sum, value) => sum + value, 0);
 };
 
-export function Yatzy() {
+export function Yatzy({ players, onWin }: GameProps) {
   const [dice, setDice] = useState([1, 1, 1, 1, 1]);
   const [held, setHeld] = useState([false, false, false, false, false]);
   const [rolling, setRolling] = useState(false);
   const [rolls, setRolls] = useState(0);
   const [player, setPlayer] = useState<Player>(0);
+  const reportedWinner = useRef<PlayerIndex | null>(null);
   const [scores, setScores] = useState<[Scores, Scores]>([emptyScores(), emptyScores()]);
   const totals = useMemo(() => scores.map((sheet) => Object.values(sheet).reduce<number>((sum, value) => sum + (value ?? 0), 0)), [scores]);
   const finished = scores.every((sheet) => Object.values(sheet).every((value) => value !== null));
-  const status = finished ? `Fin: J1 ${totals[0]} - J2 ${totals[1]}` : `Joueur ${player + 1} - lancer ${rolls}/3`;
+  const winnerIndex = totals[0] === totals[1] ? null : ((totals[0] > totals[1] ? 0 : 1) as PlayerIndex);
+  const status = finished ? `Fin: ${players[0].name} ${totals[0]} - ${players[1].name} ${totals[1]}` : `${players[player].name} - lancer ${rolls}/3`;
+
+  useEffect(() => {
+    if (!finished || winnerIndex === null || reportedWinner.current === winnerIndex) return;
+    reportedWinner.current = winnerIndex;
+    onWin(winnerIndex);
+  }, [finished, winnerIndex, onWin]);
 
   const roll = () => {
     if (rolls >= 3 || finished || rolling) return;
@@ -64,6 +73,7 @@ export function Yatzy() {
     setRolling(false);
     setRolls(0);
     setPlayer(0);
+    reportedWinner.current = null;
     setScores([emptyScores(), emptyScores()]);
   };
 
@@ -91,7 +101,7 @@ export function Yatzy() {
         {rolling ? "Ca roule..." : "Lancer"}
       </button>
       <div className="score-table">
-        <div className="score-row head"><span>Categorie</span><span>J1</span><span>J2</span></div>
+        <div className="score-row head"><span>Categorie</span><span>{players[0].name}</span><span>{players[1].name}</span></div>
         {categories.map((category) => (
           <button key={category.id} className="score-row" onClick={() => score(category.id)} disabled={scores[player][category.id] !== null || rolls === 0 || finished || rolling}>
             <span>{category.label}</span>

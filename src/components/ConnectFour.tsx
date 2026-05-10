@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { GameHeader } from "../App";
+import type { GameProps, PlayerIndex } from "../playerTypes";
 
 type Player = "R" | "Y";
 type Cell = Player | null;
@@ -35,12 +36,20 @@ const winnerOf = (board: Cell[]) => {
   return null;
 };
 
-export function ConnectFour() {
+export function ConnectFour({ players, onWin }: GameProps) {
   const [board, setBoard] = useState<Cell[]>(Array(rows * cols).fill(null));
   const [turn, setTurn] = useState<Player>("R");
+  const reportedWinner = useRef<Player | null>(null);
   const winner = useMemo(() => winnerOf(board), [board]);
   const isDraw = !winner && board.every(Boolean);
-  const status = winner ? `Victoire ${winner === "R" ? "Rouge" : "Jaune"}` : isDraw ? "Grille pleine" : `Au tour de ${turn === "R" ? "Rouge" : "Jaune"}`;
+  const playerName = (token: Player) => players[token === "R" ? 0 : 1].name;
+  const status = winner ? `${playerName(winner)} gagne` : isDraw ? "Grille pleine" : `A ${playerName(turn)} de jouer`;
+
+  useEffect(() => {
+    if (!winner || reportedWinner.current === winner) return;
+    reportedWinner.current = winner;
+    onWin((winner === "R" ? 0 : 1) as PlayerIndex);
+  }, [winner, onWin]);
 
   const drop = (col: number) => {
     if (winner) return;
@@ -58,11 +67,11 @@ export function ConnectFour() {
 
   return (
     <>
-      <GameHeader title="Puissance 4" status={status} onReset={() => { setBoard(Array(rows * cols).fill(null)); setTurn("R"); }} />
+      <GameHeader title="Puissance 4" status={status} onReset={() => { reportedWinner.current = null; setBoard(Array(rows * cols).fill(null)); setTurn("R"); }} />
       <div className={`connect-wrap ${turn === "R" ? "red-turn" : "yellow-turn"}`}>
         <div className="connect-tray" aria-hidden="true">
           <span className="next-token" />
-          <span>{winner ? "Partie terminee" : `Jeton ${turn === "R" ? "rouge" : "jaune"}`}</span>
+          <span>{winner ? "Partie terminee" : `${playerName(turn)} pose`}</span>
         </div>
         <div className="connect-board">
           {Array.from({ length: cols }).map((_, col) => (

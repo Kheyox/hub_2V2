@@ -1,15 +1,23 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GameHeader } from "../App";
+import type { GameProps, PlayerIndex } from "../playerTypes";
 
 type Player = 0 | 1;
 
 const startCount = 21;
 
-export function Matches() {
+export function Matches({ players, onWin }: GameProps) {
   const [matches, setMatches] = useState(startCount);
   const [player, setPlayer] = useState<Player>(0);
   const [winner, setWinner] = useState<Player | null>(null);
-  const status = winner !== null ? `Joueur ${winner + 1} gagne` : `Joueur ${player + 1} - ${matches} allumettes`;
+  const reportedWinner = useRef<Player | null>(null);
+  const status = winner !== null ? `${players[winner].name} gagne` : `${players[player].name} - ${matches} allumettes`;
+
+  useEffect(() => {
+    if (winner === null || reportedWinner.current === winner) return;
+    reportedWinner.current = winner;
+    onWin(winner as PlayerIndex);
+  }, [winner, onWin]);
 
   const take = (amount: number) => {
     if (winner !== null || amount > matches) return;
@@ -22,6 +30,7 @@ export function Matches() {
   };
 
   const reset = () => {
+    reportedWinner.current = null;
     setMatches(startCount);
     setPlayer(0);
     setWinner(null);
