@@ -1,8 +1,15 @@
 import { ArrowLeft, Download, RefreshCw, RotateCcw, ShieldAlert, Trophy, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Battleship } from "./components/Battleship";
+import { Checkers } from "./components/Checkers";
 import { ConnectFour } from "./components/ConnectFour";
+import { Dominoes } from "./components/Dominoes";
 import { Hangman } from "./components/Hangman";
+import { Mancala } from "./components/Mancala";
+import { Mastermind } from "./components/Mastermind";
 import { Matches } from "./components/Matches";
+import { MemoryDuel } from "./components/MemoryDuel";
+import { Quarto } from "./components/Quarto";
 import { Reversi } from "./components/Reversi";
 import { TicTacToe } from "./components/TicTacToe";
 import { Yatzy } from "./components/Yatzy";
@@ -36,7 +43,14 @@ const gameMap: Record<GameId, (props: GameProps) => JSX.Element> = {
   hangman: () => <Hangman />,
   yatzy: (props) => <Yatzy {...props} />,
   reversi: (props) => <Reversi {...props} />,
-  matches: (props) => <Matches {...props} />
+  matches: (props) => <Matches {...props} />,
+  mastermind: (props) => <Mastermind {...props} />,
+  battleship: (props) => <Battleship {...props} />,
+  checkers: (props) => <Checkers {...props} />,
+  dominoes: (props) => <Dominoes {...props} />,
+  mancala: (props) => <Mancala {...props} />,
+  quarto: (props) => <Quarto {...props} />,
+  memory: (props) => <MemoryDuel {...props} />
 };
 
 export function App() {
