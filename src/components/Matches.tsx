@@ -4,7 +4,7 @@ import type { GameProps, PlayerIndex } from "../playerTypes";
 
 type Player = 0 | 1;
 
-export function Matches({ players, settings, onWin }: GameProps) {
+export function Matches({ players, settings, onWin, feedback }: GameProps) {
   const startCount = settings.matchesStart;
   const [matches, setMatches] = useState(startCount);
   const [player, setPlayer] = useState<Player>(0);
@@ -26,7 +26,11 @@ export function Matches({ players, settings, onWin }: GameProps) {
   }, [startCount]);
 
   const take = (amount: number) => {
-    if (winner !== null || amount > matches) return;
+    if (winner !== null || amount > matches) {
+      feedback("error");
+      return;
+    }
+    feedback("tap");
     const next = matches - amount;
     if (next === 0) {
       setWinner(player === 0 ? 1 : 0);

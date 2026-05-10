@@ -36,7 +36,7 @@ const winnerOf = (board: Cell[]) => {
   return null;
 };
 
-export function ConnectFour({ players, onWin }: GameProps) {
+export function ConnectFour({ players, onWin, feedback }: GameProps) {
   const [board, setBoard] = useState<Cell[]>(Array(rows * cols).fill(null));
   const [turn, setTurn] = useState<Player>("R");
   const reportedWinner = useRef<Player | null>(null);
@@ -52,7 +52,10 @@ export function ConnectFour({ players, onWin }: GameProps) {
   }, [winner, onWin]);
 
   const drop = (col: number) => {
-    if (winner) return;
+    if (winner) {
+      feedback("error");
+      return;
+    }
     const next = [...board];
     for (let row = rows - 1; row >= 0; row -= 1) {
       const index = row * cols + col;
@@ -60,9 +63,11 @@ export function ConnectFour({ players, onWin }: GameProps) {
         next[index] = turn;
         setBoard(next);
         setTurn(turn === "R" ? "Y" : "R");
+        feedback("tap");
         return;
       }
     }
+    feedback("error");
   };
 
   return (

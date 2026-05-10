@@ -17,7 +17,7 @@ const linesFor = (size: number) => {
 const getWinner = (board: Cell[], size: number) =>
   linesFor(size).find((line) => board[line[0]] && line.every((index) => board[index] === board[line[0]]))?.map((index) => board[index])[0] || null;
 
-export function TicTacToe({ players, settings, onWin }: GameProps) {
+export function TicTacToe({ players, settings, onWin, feedback }: GameProps) {
   const size = settings.ticTacToeSize;
   const [board, setBoard] = useState<Cell[]>(Array(size * size).fill(null));
   const [turn, setTurn] = useState<Player>("X");
@@ -40,11 +40,15 @@ export function TicTacToe({ players, settings, onWin }: GameProps) {
   }, [size]);
 
   const play = (index: number) => {
-    if (winner || board[index]) return;
+    if (winner || board[index]) {
+      feedback("error");
+      return;
+    }
     const next = [...board];
     next[index] = turn;
     setBoard(next);
     setTurn(turn === "X" ? "O" : "X");
+    feedback("tap");
   };
 
   return (

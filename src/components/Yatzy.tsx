@@ -27,7 +27,7 @@ const scoreFor = (category: Category, dice: number[]) => {
   return dice.filter((value) => value === target).reduce((sum, value) => sum + value, 0);
 };
 
-export function Yatzy({ players, onWin }: GameProps) {
+export function Yatzy({ players, onWin, feedback }: GameProps) {
   const [dice, setDice] = useState([1, 1, 1, 1, 1]);
   const [held, setHeld] = useState([false, false, false, false, false]);
   const [rolling, setRolling] = useState(false);
@@ -47,7 +47,11 @@ export function Yatzy({ players, onWin }: GameProps) {
   }, [finished, winnerIndex, onWin]);
 
   const roll = () => {
-    if (rolls >= 3 || finished || rolling) return;
+    if (rolls >= 3 || finished || rolling) {
+      feedback("error");
+      return;
+    }
+    feedback("tap");
     setRolling(true);
     window.setTimeout(() => {
       setDice((current) => rollDice(held, current));
@@ -86,7 +90,7 @@ export function Yatzy({ players, onWin }: GameProps) {
             key={index}
             className={held[index] ? "die held" : "die"}
             disabled={rolling}
-            onClick={() => setHeld(held.map((item, itemIndex) => (itemIndex === index ? !item : item)))}
+            onClick={() => { feedback("tap"); setHeld(held.map((item, itemIndex) => (itemIndex === index ? !item : item))); }}
             aria-label={`De ${index + 1}: ${value}${held[index] ? ", garde" : ""}`}
           >
             <span className={`pip-face face-${value}`}>

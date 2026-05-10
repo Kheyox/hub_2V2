@@ -1,7 +1,7 @@
 {
   "name": "hub-2v2",
   "private": true,
-  "version": "0.1.8",
+  "version": "0.1.9",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@capacitor/android": "^7.2.0",
+    "@capacitor/app": "^7.1.2",
     "@capacitor/cli": "^7.2.0",
     "@capacitor/core": "^7.2.0",
     "lucide-react": "^0.468.0",

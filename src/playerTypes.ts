@@ -17,4 +17,5 @@ export type GameProps = {
   players: PlayerProfiles;
   settings: GameSettings;
   onWin: (winner: PlayerIndex, score?: string) => void;
+  feedback: (kind: "win" | "tap" | "error") => void;
 };

@@ -1,4 +1,4 @@
-import { ArrowLeft, Download, RefreshCw, RotateCcw, ShieldAlert, Trophy, X } from "lucide-react";
+import { ArrowLeft, Download, Play, RefreshCw, RotateCcw, ShieldAlert, Trophy, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Battleship } from "./components/Battleship";
 import { Checkers } from "./components/Checkers";
@@ -100,6 +100,7 @@ const gameMap: Record<GameId, (props: GameProps) => JSX.Element> = {
 export function App() {
   const [selectedGame, setSelectedGame] = useState<GameId | null>(null);
   const [gameRun, setGameRun] = useState(0);
+  const [lastPlayed, setLastPlayed] = useState<GameId | null>(() => loadJson("duelio.lastPlayed", null as GameId | null));
   const [players, setPlayers] = useState<PlayerProfiles>(loadPlayers);
   const [stats, setStats] = useState<AppStats>(() => loadJson("duelio.stats", defaultStats));
   const [settings, setSettings] = useState<GameSettings>(() => loadJson("duelio.settings", defaultSettings));
@@ -108,6 +109,7 @@ export function App() {
   const [update, setUpdate] = useState<UpdateInfo | null>(null);
   const [updatePanelOpen, setUpdatePanelOpen] = useState(false);
   const currentGame = useMemo(() => games.find((game) => game.id === selectedGame), [selectedGame]);
+  const lastPlayedGame = useMemo(() => games.find((game) => game.id === lastPlayed), [lastPlayed]);
 
   useEffect(() => {
     window.localStorage.setItem("duelio.players", JSON.stringify(players));
@@ -124,6 +126,32 @@ export function App() {
   useEffect(() => {
     window.localStorage.setItem("duelio.theme", JSON.stringify(theme));
   }, [theme]);
+
+  useEffect(() => {
+    window.localStorage.setItem("duelio.lastPlayed", JSON.stringify(lastPlayed));
+  }, [lastPlayed]);
+
+  useEffect(() => {
+    let remove: undefined | (() => void);
+    import("@capacitor/app").then(({ App: CapacitorApp }) => {
+      CapacitorApp.addListener("backButton", ({ canGoBack }) => {
+        if (selectedGame) {
+          setSelectedGame(null);
+          setLastResult(null);
+          return;
+        }
+        if (updatePanelOpen) {
+          setUpdatePanelOpen(false);
+          return;
+        }
+        if (canGoBack) window.history.back();
+      }).then((handle) => {
+        remove = () => handle.remove();
+      });
+    }).catch(() => undefined);
+
+    return () => remove?.();
+  }, [selectedGame, updatePanelOpen]);
 
   useEffect(() => {
     checkForUpdate().then((info) => {
@@ -211,6 +239,13 @@ export function App() {
   const rematch = () => {
     setLastResult(null);
     setGameRun((current) => current + 1);
+  };
+
+  const openGame = (gameId: GameId) => {
+    setSelectedGame(gameId);
+    setLastPlayed(gameId);
+    setLastResult(null);
+    playFeedback("tap");
   };
 
   const bestGameFor = (player: PlayerIndex) => {
@@ -310,6 +345,9 @@ export function App() {
         <section className="game-stage" key={`${selectedGame}-${gameRun}`}>
           {lastResult && (
             <div className="result-panel">
+              <div className="confetti" aria-hidden="true">
+                {Array.from({ length: 12 }).map((_, index) => <span key={index} />)}
+              </div>
               <div>
                 <p className="kicker">Fin de partie</p>
                 <h2>{lastResult.winnerName} gagne</h2>
@@ -318,7 +356,7 @@ export function App() {
               <button className="primary-action" onClick={rematch}>Revanche</button>
             </div>
           )}
-          {gameMap[selectedGame]({ players, settings, onWin: recordWin })}
+          {gameMap[selectedGame]({ players, settings, onWin: recordWin, feedback: playFeedback })}
         </section>
       ) : (
         <section className="hub">
@@ -333,6 +371,7 @@ export function App() {
           <section className="players-panel" aria-label="Joueurs">
             {players.map((player, index) => (
               <label key={index} className="player-card">
+                <span className={`player-avatar avatar-${index}`}>{player.name.slice(0, 1).toUpperCase() || index + 1}</span>
                 <span>Joueur {index + 1}</span>
                 <input value={player.name} maxLength={16} onChange={(event) => renamePlayer(index as PlayerIndex, event.target.value)} />
                 <strong>{player.wins} victoire{player.wins > 1 ? "s" : ""}</strong>
@@ -341,6 +380,20 @@ export function App() {
               </label>
             ))}
             <button className="reset-score" onClick={resetWins}>Remettre les victoires a zero</button>
+          </section>
+
+          <section className="resume-panel">
+            <div>
+              <p className="kicker">Reprendre</p>
+              <h3>{lastPlayedGame ? lastPlayedGame.title : "Aucune partie lancee"}</h3>
+              <span>{stats.history[0] ? `Derniere: ${stats.history[0].winnerName} sur ${stats.history[0].gameTitle}` : "Lance un jeu pour le retrouver ici."}</span>
+            </div>
+            {lastPlayedGame && (
+              <button className="primary-action" onClick={() => openGame(lastPlayedGame.id)}>
+                <Play size={18} />
+                Reprendre
+              </button>
+            )}
           </section>
 
           <section className="settings-panel">
@@ -390,9 +443,14 @@ export function App() {
             {games.map((game) => {
               const Icon = game.icon;
               return (
-                <button className="game-tile" key={game.id} onClick={() => setSelectedGame(game.id)} style={{ "--accent": game.accent } as React.CSSProperties}>
+                <button className="game-tile" key={game.id} data-game={game.id} onClick={() => openGame(game.id)} style={{ "--accent": game.accent } as React.CSSProperties}>
+                  <span className="tile-art" aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                  </span>
                   <span className="tile-icon">
-                    <Icon size={30} />
+                    <Icon size={24} />
                   </span>
                   <span>
                     <strong>{game.title}</strong>
