@@ -1,4 +1,4 @@
-import { ArrowLeft, Download, Play, RefreshCw, RotateCcw, ShieldAlert, SlidersHorizontal, Trophy, UserRound, X } from "lucide-react";
+import { ArrowLeft, BookOpen, Download, Play, RefreshCw, RotateCcw, ShieldAlert, SlidersHorizontal, Star, Trophy, UserRound, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Battleship } from "./components/Battleship";
 import { Checkers } from "./components/Checkers";
@@ -13,7 +13,7 @@ import { Quarto } from "./components/Quarto";
 import { Reversi } from "./components/Reversi";
 import { TicTacToe } from "./components/TicTacToe";
 import { Yatzy } from "./components/Yatzy";
-import { games, type GameId } from "./games";
+import { games, type GameDefinition, type GameId } from "./games";
 import type { GameProps, GameSettings, PlayerIndex, PlayerProfiles } from "./playerTypes";
 import { checkForUpdate, type UpdateInfo } from "./updateService";
 import { APP_VERSION } from "./version";
@@ -40,6 +40,12 @@ type AppStats = {
   currentStreak: { player: PlayerIndex | null; count: number };
 };
 type HomeTab = "play" | "players" | "stats" | "settings";
+type GameFilter = "Tous" | GameDefinition["category"];
+type TournamentState = {
+  enabled: boolean;
+  target: 3 | 5 | 7;
+  score: [number, number];
+};
 
 const defaultSettings: GameSettings = {
   matchesStart: 21,
@@ -55,6 +61,12 @@ const defaultStats: AppStats = {
   gamesPlayed: [0, 0],
   currentStreak: { player: null, count: 0 }
 };
+const defaultTournament: TournamentState = {
+  enabled: false,
+  target: 3,
+  score: [0, 0]
+};
+const gameFilters: GameFilter[] = ["Tous", "Rapide", "Strategie", "Hasard", "Deduction"];
 
 const loadPlayers = (): PlayerProfiles => {
   try {
@@ -108,10 +120,18 @@ export function App() {
   const [settings, setSettings] = useState<GameSettings>(() => loadJson("duelio.settings", defaultSettings));
   const [theme, setTheme] = useState<ThemeName>(() => loadJson("duelio.theme", "dark" as ThemeName));
   const [lastResult, setLastResult] = useState<MatchHistoryEntry | null>(null);
+  const [favorites, setFavorites] = useState<GameId[]>(() => loadJson("duelio.favorites", [] as GameId[]));
+  const [recentGames, setRecentGames] = useState<GameId[]>(() => loadJson("duelio.recentGames", [] as GameId[]));
+  const [gameFilter, setGameFilter] = useState<GameFilter>("Tous");
+  const [rulesGame, setRulesGame] = useState<GameDefinition | null>(null);
+  const [tournament, setTournament] = useState<TournamentState>(() => loadJson("duelio.tournament", defaultTournament));
   const [update, setUpdate] = useState<UpdateInfo | null>(null);
   const [updatePanelOpen, setUpdatePanelOpen] = useState(false);
   const currentGame = useMemo(() => games.find((game) => game.id === selectedGame), [selectedGame]);
   const lastPlayedGame = useMemo(() => games.find((game) => game.id === lastPlayed), [lastPlayed]);
+  const favoriteGames = useMemo(() => favorites.map((id) => games.find((game) => game.id === id)).filter(Boolean) as GameDefinition[], [favorites]);
+  const recentGameDefs = useMemo(() => recentGames.map((id) => games.find((game) => game.id === id)).filter(Boolean) as GameDefinition[], [recentGames]);
+  const filteredGames = useMemo(() => games.filter((game) => gameFilter === "Tous" || game.category === gameFilter), [gameFilter]);
 
   useEffect(() => {
     window.localStorage.setItem("duelio.players", JSON.stringify(players));
@@ -134,9 +154,25 @@ export function App() {
   }, [lastPlayed]);
 
   useEffect(() => {
+    window.localStorage.setItem("duelio.favorites", JSON.stringify(favorites));
+  }, [favorites]);
+
+  useEffect(() => {
+    window.localStorage.setItem("duelio.recentGames", JSON.stringify(recentGames));
+  }, [recentGames]);
+
+  useEffect(() => {
+    window.localStorage.setItem("duelio.tournament", JSON.stringify(tournament));
+  }, [tournament]);
+
+  useEffect(() => {
     let remove: undefined | (() => void);
     import("@capacitor/app").then(({ App: CapacitorApp }) => {
       CapacitorApp.addListener("backButton", ({ canGoBack }) => {
+        if (rulesGame) {
+          setRulesGame(null);
+          return;
+        }
         if (selectedGame) {
           setSelectedGame(null);
           setLastResult(null);
@@ -153,7 +189,7 @@ export function App() {
     }).catch(() => undefined);
 
     return () => remove?.();
-  }, [selectedGame, updatePanelOpen]);
+  }, [selectedGame, updatePanelOpen, rulesGame]);
 
   useEffect(() => {
     checkForUpdate().then((info) => {
@@ -226,6 +262,12 @@ export function App() {
       };
     });
     setLastResult(entry);
+    setTournament((current) => {
+      if (!current.enabled) return current;
+      const nextScore: [number, number] = [...current.score];
+      nextScore[winner] += 1;
+      return { ...current, score: nextScore };
+    });
     playFeedback("win");
   };
 
@@ -236,6 +278,7 @@ export function App() {
     ]);
     setStats(defaultStats);
     setLastResult(null);
+    setTournament(defaultTournament);
   };
 
   const rematch = () => {
@@ -246,7 +289,23 @@ export function App() {
   const openGame = (gameId: GameId) => {
     setSelectedGame(gameId);
     setLastPlayed(gameId);
+    setRecentGames((current) => [gameId, ...current.filter((id) => id !== gameId)].slice(0, 5));
     setLastResult(null);
+    playFeedback("tap");
+  };
+
+  const toggleFavorite = (gameId: GameId) => {
+    setFavorites((current) => current.includes(gameId) ? current.filter((id) => id !== gameId) : [gameId, ...current]);
+    playFeedback("tap");
+  };
+
+  const startTournament = (target: 3 | 5 | 7) => {
+    setTournament({ enabled: true, target, score: [0, 0] });
+    playFeedback("tap");
+  };
+
+  const stopTournament = () => {
+    setTournament(defaultTournament);
     playFeedback("tap");
   };
 
@@ -254,6 +313,41 @@ export function App() {
     const best = Object.entries(stats.perGameWins).sort((a, b) => (b[1][player] || 0) - (a[1][player] || 0))[0];
     const game = best ? games.find((item) => item.id === best[0]) : null;
     return game && best[1][player] > 0 ? `${game.title} (${best[1][player]})` : "-";
+  };
+
+  const tournamentLimit = Math.ceil(tournament.target / 2);
+  const tournamentWinner: PlayerIndex | null = tournament.score[0] >= tournamentLimit ? 0 : tournament.score[1] >= tournamentLimit ? 1 : null;
+
+  const renderGameTile = (game: GameDefinition, compact = false) => {
+    const Icon = game.icon;
+    const isFavorite = favorites.includes(game.id);
+    return (
+      <article className={`game-tile ${compact ? "compact" : ""}`} key={game.id} data-game={game.id} style={{ "--accent": game.accent } as React.CSSProperties}>
+        <button className="game-launch" onClick={() => openGame(game.id)} aria-label={`Jouer a ${game.title}`}>
+          <span className="tile-art" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+          <span className="tile-icon">
+            <Icon size={24} />
+          </span>
+          <span className="tile-copy">
+            <strong>{game.title}</strong>
+            <small>{game.subtitle}</small>
+            {!compact && <em>{game.category}</em>}
+          </span>
+        </button>
+        <div className="tile-actions">
+          <button className={isFavorite ? "mini-action active" : "mini-action"} onClick={() => toggleFavorite(game.id)} aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}>
+            <Star size={17} />
+          </button>
+          <button className="mini-action" onClick={() => setRulesGame(game)} aria-label={`Regles de ${game.title}`}>
+            ?
+          </button>
+        </div>
+      </article>
+    );
   };
 
   return (
@@ -272,8 +366,8 @@ export function App() {
           <h1>{currentGame?.title || "Jeux 1v1 locaux"}</h1>
         </div>
 
-        <button className="icon-button" onClick={() => window.location.reload()} aria-label="Rafraichir">
-          <RefreshCw size={20} />
+        <button className="icon-button" onClick={() => selectedGame && currentGame ? setRulesGame(currentGame) : window.location.reload()} aria-label={selectedGame ? "Regles du jeu" : "Rafraichir"}>
+          {selectedGame ? <BookOpen size={20} /> : <RefreshCw size={20} />}
         </button>
       </header>
 
@@ -343,6 +437,29 @@ export function App() {
         </section>
       )}
 
+      {rulesGame && (
+        <section className="update-modal" role="dialog" aria-modal="true" aria-label={`Regles ${rulesGame.title}`}>
+          <div className="update-card rules-card">
+            <button className="modal-close" onClick={() => setRulesGame(null)} aria-label="Fermer">
+              <X size={18} />
+            </button>
+            <p className="kicker">Regles</p>
+            <h2>{rulesGame.title}</h2>
+            <div className="rules-block">
+              <strong>Objectif</strong>
+              <p>{rulesGame.rules.objective}</p>
+            </div>
+            <div className="rules-block">
+              <strong>Tour de jeu</strong>
+              <p>{rulesGame.rules.turn}</p>
+            </div>
+            <div className="rules-tips">
+              {rulesGame.rules.tips.map((tip) => <span key={tip}>{tip}</span>)}
+            </div>
+          </div>
+        </section>
+      )}
+
       {selectedGame ? (
         <section className="game-stage" key={`${selectedGame}-${gameRun}`}>
           {lastResult && (
@@ -355,7 +472,15 @@ export function App() {
                 <h2>{lastResult.winnerName} gagne</h2>
                 <span>{lastResult.gameTitle} - {lastResult.score}</span>
               </div>
-              <button className="primary-action" onClick={rematch}>Revanche</button>
+              <div className="result-summary">
+                <span>Score partie: {lastResult.score}</span>
+                <span>Global: {players[0].name} {players[0].wins} - {players[1].wins} {players[1].name}</span>
+                {tournament.enabled && <span>Tournoi: {players[0].name} {tournament.score[0]} - {tournament.score[1]} {players[1].name}{tournamentWinner !== null ? `, gagne par ${players[tournamentWinner].name}` : `, objectif ${tournamentLimit}`}</span>}
+              </div>
+              <div className="result-actions">
+                <button className="primary-action" onClick={rematch}>Revanche</button>
+                <button className="secondary-action" onClick={() => { setSelectedGame(null); setLastResult(null); }}>Changer de jeu</button>
+              </div>
             </div>
           )}
           {gameMap[selectedGame]({ players, settings, onWin: recordWin, feedback: playFeedback })}
@@ -403,31 +528,50 @@ export function App() {
                 )}
               </section>
 
-              <section className="section-heading">
-                <p className="kicker">Jeux</p>
-                <span>{games.length} jeux disponibles</span>
+              <section className="tournament-panel">
+                <div>
+                  <p className="kicker">Tournoi</p>
+                  <h3>{tournament.enabled ? `${players[0].name} ${tournament.score[0]} - ${tournament.score[1]} ${players[1].name}` : "Serie de manches"}</h3>
+                  <span>{tournament.enabled ? `Premier a ${tournamentLimit} victoire${tournamentLimit > 1 ? "s" : ""}` : "Choisis 3, 5 ou 7 manches, Duelio garde le score global."}</span>
+                </div>
+                <div className="tournament-actions">
+                  {[3, 5, 7].map((target) => (
+                    <button key={target} className={tournament.enabled && tournament.target === target ? "active" : ""} onClick={() => startTournament(target as 3 | 5 | 7)}>{target}</button>
+                  ))}
+                  {tournament.enabled && <button onClick={stopTournament}>Stop</button>}
+                </div>
               </section>
 
+              {(favoriteGames.length > 0 || recentGameDefs.length > 0) && (
+                <section className="quick-games">
+                  {favoriteGames.length > 0 && (
+                    <div>
+                      <p className="kicker">Favoris</p>
+                      <div className="quick-row">{favoriteGames.map((game) => renderGameTile(game, true))}</div>
+                    </div>
+                  )}
+                  {recentGameDefs.length > 0 && (
+                    <div>
+                      <p className="kicker">Recents</p>
+                      <div className="quick-row">{recentGameDefs.map((game) => renderGameTile(game, true))}</div>
+                    </div>
+                  )}
+                </section>
+              )}
+
+              <section className="section-heading">
+                <p className="kicker">Jeux</p>
+                <span>{filteredGames.length} jeu{filteredGames.length > 1 ? "x" : ""}</span>
+              </section>
+
+              <div className="filter-row" aria-label="Filtrer les jeux">
+                {gameFilters.map((filter) => (
+                  <button key={filter} className={gameFilter === filter ? "active" : ""} onClick={() => setGameFilter(filter)}>{filter}</button>
+                ))}
+              </div>
+
               <div className="game-grid">
-                {games.map((game) => {
-                  const Icon = game.icon;
-                  return (
-                    <button className="game-tile" key={game.id} data-game={game.id} onClick={() => openGame(game.id)} style={{ "--accent": game.accent } as React.CSSProperties}>
-                      <span className="tile-art" aria-hidden="true">
-                        <i />
-                        <i />
-                        <i />
-                      </span>
-                      <span className="tile-icon">
-                        <Icon size={24} />
-                      </span>
-                      <span>
-                        <strong>{game.title}</strong>
-                        <small>{game.subtitle}</small>
-                      </span>
-                    </button>
-                  );
-                })}
+                {filteredGames.map((game) => renderGameTile(game))}
               </div>
             </>
           )}

@@ -4,6 +4,8 @@ import type { GameProps, PlayerIndex } from "../playerTypes";
 
 const initialPits = () => Array(12).fill(4) as number[];
 const sideEmpty = (pits: number[], player: PlayerIndex) => (player === 0 ? pits.slice(0, 6) : pits.slice(6, 12)).every((value) => value === 0);
+const ownPit = (pit: number, player: PlayerIndex) => player === 0 ? pit >= 0 && pit < 6 : pit >= 6 && pit < 12;
+const oppositePit = (pit: number) => 11 - pit;
 
 export function Mancala({ players, onWin }: GameProps) {
   const [pits, setPits] = useState<number[]>(initialPits);
@@ -38,6 +40,15 @@ export function Mancala({ players, onWin }: GameProps) {
         const pitIndex = pos > 6 ? pos - 1 : pos;
         nextPits[pitIndex] += 1;
         stones -= 1;
+      }
+    }
+    const lastPit = pos === 6 || pos === 13 ? null : pos > 6 ? pos - 1 : pos;
+    if (lastPit !== null && ownPit(lastPit, turn) && nextPits[lastPit] === 1) {
+      const opposite = oppositePit(lastPit);
+      if (nextPits[opposite] > 0) {
+        nextStores[turn] += nextPits[opposite] + nextPits[lastPit];
+        nextPits[opposite] = 0;
+        nextPits[lastPit] = 0;
       }
     }
     setPits(nextPits);

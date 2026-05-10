@@ -2,23 +2,32 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { GameHeader } from "../App";
 import type { GameProps, PlayerIndex } from "../playerTypes";
 
-type Cell = { ship: boolean; hit: boolean };
-const size = 5;
+type Cell = { ship: number | null; hit: boolean };
+const size = 6;
+const fleet = [3, 2, 1];
 
 const makeFleet = (): Cell[] => {
-  const board = Array.from({ length: size * size }, () => ({ ship: false, hit: false }));
-  let placed = 0;
-  while (placed < 6) {
-    const index = Math.floor(Math.random() * board.length);
-    if (!board[index].ship) {
-      board[index].ship = true;
-      placed += 1;
+  const board: Cell[] = Array.from({ length: size * size }, () => ({ ship: null, hit: false }));
+  fleet.forEach((length, shipIndex) => {
+    let placed = false;
+    while (!placed) {
+      const horizontal = Math.random() > 0.5;
+      const row = Math.floor(Math.random() * size);
+      const col = Math.floor(Math.random() * size);
+      if (horizontal && col + length > size) continue;
+      if (!horizontal && row + length > size) continue;
+      const cells = Array.from({ length }, (_, offset) => (row + (horizontal ? 0 : offset)) * size + col + (horizontal ? offset : 0));
+      if (cells.some((index) => board[index].ship !== null)) continue;
+      cells.forEach((index) => {
+        board[index].ship = shipIndex;
+      });
+      placed = true;
     }
-  }
+  });
   return board;
 };
 
-const remaining = (board: Cell[]) => board.filter((cell) => cell.ship && !cell.hit).length;
+const remaining = (board: Cell[]) => board.filter((cell) => cell.ship !== null && !cell.hit).length;
 
 export function Battleship({ players, onWin }: GameProps) {
   const [boards, setBoards] = useState<[Cell[], Cell[]]>([makeFleet(), makeFleet()]);
@@ -31,8 +40,8 @@ export function Battleship({ players, onWin }: GameProps) {
   useEffect(() => {
     if (winner === null || reported.current) return;
     reported.current = true;
-    onWin(winner);
-  }, [winner, onWin]);
+    onWin(winner, `${left[winner === 0 ? 1 : 0]} cases restantes`);
+  }, [winner, left, onWin]);
 
   const attack = (index: number) => {
     if (winner !== null) return;
@@ -41,7 +50,7 @@ export function Battleship({ players, onWin }: GameProps) {
     const next: [Cell[], Cell[]] = [boards[0].map((cell) => ({ ...cell })), boards[1].map((cell) => ({ ...cell }))];
     next[target][index].hit = true;
     setBoards(next);
-    if (!next[target][index].ship) setTurn(target as PlayerIndex);
+    if (next[target][index].ship === null) setTurn(target as PlayerIndex);
   };
 
   const reset = () => {
@@ -55,11 +64,11 @@ export function Battleship({ players, onWin }: GameProps) {
   return (
     <>
       <GameHeader title="Bataille navale" status={status} onReset={reset} />
-      <div className="duel-score"><span>{players[0].name}: {left[0]} navires</span><span>{players[1].name}: {left[1]} navires</span></div>
+      <div className="duel-score"><span>{players[0].name}: {left[0]} cases</span><span>{players[1].name}: {left[1]} cases</span></div>
       <div className="battle-board">
         {boards[target].map((cell, index) => (
-          <button key={index} className={`battle-cell ${cell.hit ? (cell.ship ? "hit" : "miss") : ""}`} onClick={() => attack(index)} aria-label={`Tir ${index + 1}`}>
-            {cell.hit ? (cell.ship ? "X" : "•") : ""}
+          <button key={index} className={`battle-cell ${cell.hit ? (cell.ship !== null ? "hit" : "miss") : ""}`} onClick={() => attack(index)} aria-label={`Tir ${index + 1}`}>
+            {cell.hit ? (cell.ship !== null ? "X" : ".") : ""}
           </button>
         ))}
       </div>

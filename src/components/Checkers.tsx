@@ -39,15 +39,23 @@ const movesFor = (board: Piece[], index: number): Move[] => {
   return moves;
 };
 
+const legalMovesFor = (board: Piece[], player: PlayerIndex) => {
+  const moves = board.flatMap((piece, index) => owner(piece) === player ? movesFor(board, index).map((move) => ({ from: index, ...move })) : []);
+  const captures = moves.filter((move) => move.capture !== undefined);
+  return captures.length ? captures : moves;
+};
+
 export function Checkers({ players, onWin }: GameProps) {
   const [board, setBoard] = useState<Piece[]>(initial);
   const [turn, setTurn] = useState<PlayerIndex>(0);
   const [selected, setSelected] = useState<number | null>(null);
   const reported = useRef(false);
   const counts = useMemo(() => [board.filter((piece) => owner(piece) === 0).length, board.filter((piece) => owner(piece) === 1).length] as [number, number], [board]);
-  const winner = counts[0] === 0 ? 1 : counts[1] === 0 ? 0 : null;
-  const possible = selected === null ? [] : movesFor(board, selected);
-  const status = winner === null ? `${players[turn].name} avance` : `${players[winner].name} gagne`;
+  const legalMoves = useMemo(() => legalMovesFor(board, turn), [board, turn]);
+  const mustCapture = legalMoves.some((move) => move.capture !== undefined);
+  const winner = counts[0] === 0 ? 1 : counts[1] === 0 ? 0 : legalMoves.length === 0 ? (turn === 0 ? 1 : 0) as PlayerIndex : null;
+  const possible = selected === null ? [] : legalMoves.filter((move) => move.from === selected);
+  const status = winner === null ? `${players[turn].name} ${mustCapture ? "doit prendre" : "avance"}` : `${players[winner].name} gagne`;
 
   useEffect(() => {
     if (winner === null || reported.current) return;
@@ -58,6 +66,7 @@ export function Checkers({ players, onWin }: GameProps) {
   const click = (index: number) => {
     if (winner !== null) return;
     if (owner(board[index]) === turn) {
+      if (!legalMoves.some((move) => move.from === index)) return;
       setSelected(index);
       return;
     }

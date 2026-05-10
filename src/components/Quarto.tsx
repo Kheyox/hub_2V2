@@ -17,9 +17,9 @@ const hasQuarto = (board: Array<number | null>) => lines.some((line) => {
 export function Quarto({ players, onWin }: GameProps) {
   const [board, setBoard] = useState<Array<number | null>>(Array(16).fill(null));
   const [available, setAvailable] = useState<number[]>(Array.from({ length: 16 }, (_, index) => index));
-  const [piece, setPiece] = useState<number | null>(0);
+  const [piece, setPiece] = useState<number | null>(null);
   const [turn, setTurn] = useState<PlayerIndex>(0);
-  const [phase, setPhase] = useState<"place" | "choose">("place");
+  const [phase, setPhase] = useState<"place" | "choose">("choose");
   const reported = useRef(false);
   const winner = hasQuarto(board) ? turn : null;
   const status = winner === null ? (phase === "place" ? `${players[turn].name} place` : `${players[turn].name} choisit`) : `${players[winner].name} gagne`;
@@ -42,7 +42,7 @@ export function Quarto({ players, onWin }: GameProps) {
   };
 
   const choose = (nextPiece: number) => {
-    if (phase !== "choose" || winner !== null) return;
+    if (phase !== "choose" || winner !== null || !available.includes(nextPiece)) return;
     setPiece(nextPiece);
     setTurn(turn === 0 ? 1 : 0);
     setPhase("place");
@@ -52,9 +52,9 @@ export function Quarto({ players, onWin }: GameProps) {
     reported.current = false;
     setBoard(Array(16).fill(null));
     setAvailable(Array.from({ length: 16 }, (_, index) => index));
-    setPiece(0);
+    setPiece(null);
     setTurn(0);
-    setPhase("place");
+    setPhase("choose");
   };
 
   return (

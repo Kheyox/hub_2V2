@@ -9,6 +9,17 @@ const makeSet = () => {
   return set.sort(() => Math.random() - 0.5);
 };
 const pips = (hand: Domino[]) => hand.reduce((sum, [a, b]) => sum + a + b, 0);
+const highestDoubleIndex = (hand: Domino[]) => {
+  let best = -1;
+  let value = -1;
+  hand.forEach(([a, b], index) => {
+    if (a === b && a > value) {
+      best = index;
+      value = a;
+    }
+  });
+  return best;
+};
 
 export function Dominoes({ players, onWin }: GameProps) {
   const [stock, setStock] = useState<Domino[]>([]);
@@ -18,17 +29,26 @@ export function Dominoes({ players, onWin }: GameProps) {
   const reported = useRef(false);
   const ends = line.length ? [line[0][0], line[line.length - 1][1]] : null;
   const playable = (tile: Domino) => !ends || tile.includes(ends[0]) || tile.includes(ends[1]);
+  const canPlay = hands[turn].some(playable);
   const blocked = stock.length === 0 && !hands[0].some(playable) && !hands[1].some(playable);
   const winner = hands[0].length === 0 ? 0 : hands[1].length === 0 ? 1 : blocked ? (pips(hands[0]) === pips(hands[1]) ? null : (pips(hands[0]) < pips(hands[1]) ? 0 : 1) as PlayerIndex) : null;
   const status = winner === null ? `${players[turn].name} pose` : `${players[winner].name} gagne`;
 
   const reset = () => {
     const set = makeSet();
+    const hand0 = set.slice(0, 7);
+    const hand1 = set.slice(7, 14);
+    const double0 = highestDoubleIndex(hand0);
+    const double1 = highestDoubleIndex(hand1);
+    const starter: PlayerIndex = double1 >= 0 && (double0 < 0 || hand1[double1][0] > hand0[double0][0]) ? 1 : 0;
+    const starterDouble = starter === 0 ? double0 : double1;
+    const nextHands: [Domino[], Domino[]] = [[...hand0], [...hand1]];
+    const opening = starterDouble >= 0 ? nextHands[starter].splice(starterDouble, 1)[0] : null;
     reported.current = false;
-    setHands([set.slice(0, 7), set.slice(7, 14)]);
+    setHands(nextHands);
     setStock(set.slice(14));
-    setLine([]);
-    setTurn(0);
+    setLine(opening ? [opening] : []);
+    setTurn(starter === 0 ? 1 : 0);
   };
 
   useEffect(reset, []);
@@ -61,6 +81,11 @@ export function Dominoes({ players, onWin }: GameProps) {
     setStock(stock.slice(1));
   };
 
+  const pass = () => {
+    if (stock.length || canPlay || winner !== null) return;
+    setTurn(turn === 0 ? 1 : 0);
+  };
+
   return (
     <>
       <GameHeader title="Dominos" status={status} onReset={reset} />
@@ -68,7 +93,9 @@ export function Dominoes({ players, onWin }: GameProps) {
       <div className="domino-hand">
         {hands[turn].map((tile, index) => <button key={`${tile[0]}-${tile[1]}-${index}`} className="domino-tile" disabled={!playable(tile)} onClick={() => play(index)}>{tile[0]}|{tile[1]}</button>)}
       </div>
-      <button className="primary-action" onClick={draw} disabled={!stock.length}>Piocher ({stock.length})</button>
+      <button className="primary-action" onClick={stock.length ? draw : pass} disabled={stock.length ? false : canPlay}>
+        {stock.length ? `Piocher (${stock.length})` : "Passer"}
+      </button>
     </>
   );
 }
