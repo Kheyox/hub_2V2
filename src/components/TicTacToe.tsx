@@ -1,0 +1,47 @@
+import { useMemo, useState } from "react";
+import { GameHeader } from "../App";
+
+type Player = "X" | "O";
+type Cell = Player | null;
+
+const wins = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6]
+];
+
+const getWinner = (board: Cell[]) => wins.find(([a, b, c]) => board[a] && board[a] === board[b] && board[a] === board[c])?.map((index) => board[index])[0] || null;
+
+export function TicTacToe() {
+  const [board, setBoard] = useState<Cell[]>(Array(9).fill(null));
+  const [turn, setTurn] = useState<Player>("X");
+  const winner = useMemo(() => getWinner(board), [board]);
+  const isDraw = !winner && board.every(Boolean);
+  const status = winner ? `Victoire ${winner}` : isDraw ? "Match nul" : `Au tour de ${turn}`;
+
+  const play = (index: number) => {
+    if (winner || board[index]) return;
+    const next = [...board];
+    next[index] = turn;
+    setBoard(next);
+    setTurn(turn === "X" ? "O" : "X");
+  };
+
+  return (
+    <>
+      <GameHeader title="Morpion" status={status} onReset={() => { setBoard(Array(9).fill(null)); setTurn("X"); }} />
+      <div className="ttt-board">
+        {board.map((cell, index) => (
+          <button key={index} className="ttt-cell" onClick={() => play(index)} aria-label={`Case ${index + 1}`}>
+            {cell}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
