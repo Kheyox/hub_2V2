@@ -4,9 +4,8 @@ import type { GameProps, PlayerIndex } from "../playerTypes";
 
 type Player = 0 | 1;
 
-const startCount = 21;
-
-export function Matches({ players, onWin }: GameProps) {
+export function Matches({ players, settings, onWin }: GameProps) {
+  const startCount = settings.matchesStart;
   const [matches, setMatches] = useState(startCount);
   const [player, setPlayer] = useState<Player>(0);
   const [winner, setWinner] = useState<Player | null>(null);
@@ -18,6 +17,13 @@ export function Matches({ players, onWin }: GameProps) {
     reportedWinner.current = winner;
     onWin(winner as PlayerIndex);
   }, [winner, onWin]);
+
+  useEffect(() => {
+    reportedWinner.current = null;
+    setMatches(startCount);
+    setPlayer(0);
+    setWinner(null);
+  }, [startCount]);
 
   const take = (amount: number) => {
     if (winner !== null || amount > matches) return;

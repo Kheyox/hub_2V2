@@ -20,6 +20,26 @@ body {
     #101518;
 }
 
+body:has(.theme-arcade) {
+  background:
+    linear-gradient(180deg, rgba(216, 156, 255, 0.18), transparent 32%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.024) 0 2px, transparent 2px 22px),
+    #120f1f;
+}
+
+body:has(.theme-wood) {
+  background:
+    linear-gradient(90deg, rgba(245, 200, 76, 0.08), transparent 35%),
+    repeating-linear-gradient(90deg, #2b1c14 0 28px, #24160f 28px 56px);
+}
+
+body:has(.theme-neon) {
+  background:
+    linear-gradient(140deg, rgba(57, 198, 163, 0.22), transparent 35%),
+    linear-gradient(24deg, rgba(216, 156, 255, 0.24), transparent 42%),
+    #070a11;
+}
+
 button {
   border: 0;
   color: inherit;
@@ -277,6 +297,11 @@ button {
   color: #f5c84c;
 }
 
+.player-card small {
+  color: #9fb1ad;
+  line-height: 1.25;
+}
+
 .reset-score {
   grid-column: 1 / -1;
   min-height: 42px;
@@ -284,6 +309,95 @@ button {
   background: #1d282b;
   color: #c5d2cf;
   font-weight: 850;
+}
+
+.settings-panel,
+.history-panel,
+.result-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(237, 243, 241, 0.08);
+  border-radius: 8px;
+  background: #182225;
+}
+
+.settings-panel {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.settings-panel label {
+  display: grid;
+  gap: 6px;
+  color: #9fb1ad;
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.settings-panel input,
+.settings-panel select,
+.hangman-setup input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px;
+  background: #101518;
+  color: #edf3f1;
+  font: inherit;
+  font-weight: 850;
+  outline: 1px solid rgba(237, 243, 241, 0.08);
+}
+
+.settings-panel button {
+  min-height: 42px;
+  border-radius: 8px;
+  background: #263437;
+  color: #c5d2cf;
+  font-weight: 850;
+}
+
+.settings-panel button.toggle-on {
+  background: #edf3f1;
+  color: #101518;
+}
+
+.history-panel {
+  margin-bottom: 12px;
+}
+
+.history-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 8px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #101518;
+}
+
+.history-row small {
+  grid-column: 1 / -1;
+  color: #9fb1ad;
+}
+
+.result-panel {
+  margin-top: 0;
+  grid-template-columns: 1fr 150px;
+  align-items: center;
+  background:
+    linear-gradient(145deg, rgba(245, 200, 76, 0.12), transparent 48%),
+    #182225;
+}
+
+.result-panel h2,
+.result-panel span {
+  margin: 0;
+}
+
+.result-panel span {
+  color: #c5d2cf;
 }
 
 .game-grid {
@@ -957,6 +1071,14 @@ button {
   overflow-wrap: anywhere;
 }
 
+.hangman-setup {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 8px;
+  background: #182225;
+}
+
 .hangman-meter {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -1192,6 +1314,11 @@ button {
   }
 
   .players-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-panel,
+  .result-panel {
     grid-template-columns: 1fr;
   }
 

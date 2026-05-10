@@ -3,12 +3,20 @@ apply plugin: 'com.android.application'
 android {
     namespace "com.kheyox.hub2v2"
     compileSdk rootProject.ext.compileSdkVersion
+    signingConfigs {
+        duelio {
+            storeFile file("../duelio-update.keystore")
+            storePassword "duelio123"
+            keyAlias "duelio"
+            keyPassword "duelio123"
+        }
+    }
     defaultConfig {
         applicationId "com.kheyox.hub2v2"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 8
-        versionName "0.1.7"
+        versionCode 9
+        versionName "0.1.8"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -17,7 +25,11 @@ android {
         }
     }
     buildTypes {
+        debug {
+            signingConfig signingConfigs.duelio
+        }
         release {
+            signingConfig signingConfigs.duelio
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

@@ -14,7 +14,7 @@ import { Reversi } from "./components/Reversi";
 import { TicTacToe } from "./components/TicTacToe";
 import { Yatzy } from "./components/Yatzy";
 import { games, type GameId } from "./games";
-import type { GameProps, PlayerIndex, PlayerProfiles } from "./playerTypes";
+import type { GameProps, GameSettings, PlayerIndex, PlayerProfiles } from "./playerTypes";
 import { checkForUpdate, type UpdateInfo } from "./updateService";
 import { APP_VERSION } from "./version";
 
@@ -22,6 +22,38 @@ const defaultPlayers: PlayerProfiles = [
   { name: "Joueur 1", wins: 0 },
   { name: "Joueur 2", wins: 0 }
 ];
+
+type ThemeName = "dark" | "arcade" | "wood" | "neon";
+type MatchHistoryEntry = {
+  id: string;
+  gameId: GameId;
+  gameTitle: string;
+  winner: PlayerIndex;
+  winnerName: string;
+  date: string;
+  score: string;
+};
+type AppStats = {
+  history: MatchHistoryEntry[];
+  perGameWins: Record<string, [number, number]>;
+  gamesPlayed: [number, number];
+  currentStreak: { player: PlayerIndex | null; count: number };
+};
+
+const defaultSettings: GameSettings = {
+  matchesStart: 21,
+  ticTacToeSize: 3,
+  hangmanErrors: 6,
+  sound: true,
+  vibration: true
+};
+
+const defaultStats: AppStats = {
+  history: [],
+  perGameWins: {},
+  gamesPlayed: [0, 0],
+  currentStreak: { player: null, count: 0 }
+};
 
 const loadPlayers = (): PlayerProfiles => {
   try {
@@ -37,10 +69,22 @@ const loadPlayers = (): PlayerProfiles => {
   }
 };
 
+const loadJson = <T,>(key: string, fallback: T): T => {
+  try {
+    const stored = window.localStorage.getItem(key);
+    if (!stored) return fallback;
+    const parsed = JSON.parse(stored);
+    if (typeof fallback !== "object" || fallback === null || Array.isArray(fallback)) return parsed as T;
+    return { ...fallback, ...parsed } as T;
+  } catch {
+    return fallback;
+  }
+};
+
 const gameMap: Record<GameId, (props: GameProps) => JSX.Element> = {
   tictactoe: (props) => <TicTacToe {...props} />,
   connect4: (props) => <ConnectFour {...props} />,
-  hangman: () => <Hangman />,
+  hangman: (props) => <Hangman {...props} />,
   yatzy: (props) => <Yatzy {...props} />,
   reversi: (props) => <Reversi {...props} />,
   matches: (props) => <Matches {...props} />,
@@ -55,7 +99,12 @@ const gameMap: Record<GameId, (props: GameProps) => JSX.Element> = {
 
 export function App() {
   const [selectedGame, setSelectedGame] = useState<GameId | null>(null);
+  const [gameRun, setGameRun] = useState(0);
   const [players, setPlayers] = useState<PlayerProfiles>(loadPlayers);
+  const [stats, setStats] = useState<AppStats>(() => loadJson("duelio.stats", defaultStats));
+  const [settings, setSettings] = useState<GameSettings>(() => loadJson("duelio.settings", defaultSettings));
+  const [theme, setTheme] = useState<ThemeName>(() => loadJson("duelio.theme", "dark" as ThemeName));
+  const [lastResult, setLastResult] = useState<MatchHistoryEntry | null>(null);
   const [update, setUpdate] = useState<UpdateInfo | null>(null);
   const [updatePanelOpen, setUpdatePanelOpen] = useState(false);
   const currentGame = useMemo(() => games.find((game) => game.id === selectedGame), [selectedGame]);
@@ -63,6 +112,18 @@ export function App() {
   useEffect(() => {
     window.localStorage.setItem("duelio.players", JSON.stringify(players));
   }, [players]);
+
+  useEffect(() => {
+    window.localStorage.setItem("duelio.stats", JSON.stringify(stats));
+  }, [stats]);
+
+  useEffect(() => {
+    window.localStorage.setItem("duelio.settings", JSON.stringify(settings));
+  }, [settings]);
+
+  useEffect(() => {
+    window.localStorage.setItem("duelio.theme", JSON.stringify(theme));
+  }, [theme]);
 
   useEffect(() => {
     checkForUpdate().then((info) => {
@@ -86,12 +147,56 @@ export function App() {
     });
   };
 
-  const recordWin = (winner: PlayerIndex) => {
+  const playFeedback = (kind: "win" | "tap" | "error") => {
+    if (settings.vibration && navigator.vibrate) {
+      navigator.vibrate(kind === "win" ? [30, 40, 60] : kind === "error" ? 40 : 15);
+    }
+    if (!settings.sound) return;
+    const AudioContextType = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextType) return;
+    const ctx = new AudioContextType();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = kind === "win" ? 740 : kind === "error" ? 180 : 420;
+    gain.gain.value = 0.045;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + (kind === "win" ? 0.18 : 0.08));
+  };
+
+  const recordWin = (winner: PlayerIndex, score = "Victoire") => {
+    if (!selectedGame || !currentGame) return;
+    const entry: MatchHistoryEntry = {
+      id: `${Date.now()}-${selectedGame}`,
+      gameId: selectedGame,
+      gameTitle: currentGame.title,
+      winner,
+      winnerName: players[winner].name,
+      date: new Date().toISOString(),
+      score
+    };
+
     setPlayers((current) => {
       const next: PlayerProfiles = [{ ...current[0] }, { ...current[1] }];
       next[winner].wins += 1;
       return next;
     });
+    setStats((current) => {
+      const previousGame = current.perGameWins[selectedGame] || [0, 0];
+      const perGameWins: Record<string, [number, number]> = {
+        ...current.perGameWins,
+        [selectedGame]: winner === 0 ? [previousGame[0] + 1, previousGame[1]] : [previousGame[0], previousGame[1] + 1]
+      };
+      return {
+        history: [entry, ...current.history].slice(0, 30),
+        perGameWins,
+        gamesPlayed: winner === 0 ? [current.gamesPlayed[0] + 1, current.gamesPlayed[1]] : [current.gamesPlayed[0], current.gamesPlayed[1] + 1],
+        currentStreak: current.currentStreak.player === winner ? { player: winner, count: current.currentStreak.count + 1 } : { player: winner, count: 1 }
+      };
+    });
+    setLastResult(entry);
+    playFeedback("win");
   };
 
   const resetWins = () => {
@@ -99,10 +204,23 @@ export function App() {
       { ...current[0], wins: 0 },
       { ...current[1], wins: 0 }
     ]);
+    setStats(defaultStats);
+    setLastResult(null);
+  };
+
+  const rematch = () => {
+    setLastResult(null);
+    setGameRun((current) => current + 1);
+  };
+
+  const bestGameFor = (player: PlayerIndex) => {
+    const best = Object.entries(stats.perGameWins).sort((a, b) => (b[1][player] || 0) - (a[1][player] || 0))[0];
+    const game = best ? games.find((item) => item.id === best[0]) : null;
+    return game && best[1][player] > 0 ? `${game.title} (${best[1][player]})` : "-";
   };
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell theme-${theme}`}>
       <header className="topbar">
         {selectedGame ? (
           <button className="icon-button" onClick={() => setSelectedGame(null)} aria-label="Retour au hub">
@@ -189,7 +307,19 @@ export function App() {
       )}
 
       {selectedGame ? (
-        <section className="game-stage">{gameMap[selectedGame]({ players, onWin: recordWin })}</section>
+        <section className="game-stage" key={`${selectedGame}-${gameRun}`}>
+          {lastResult && (
+            <div className="result-panel">
+              <div>
+                <p className="kicker">Fin de partie</p>
+                <h2>{lastResult.winnerName} gagne</h2>
+                <span>{lastResult.gameTitle} - {lastResult.score}</span>
+              </div>
+              <button className="primary-action" onClick={rematch}>Revanche</button>
+            </div>
+          )}
+          {gameMap[selectedGame]({ players, settings, onWin: recordWin })}
+        </section>
       ) : (
         <section className="hub">
           <div className="hero-panel">
@@ -206,9 +336,54 @@ export function App() {
                 <span>Joueur {index + 1}</span>
                 <input value={player.name} maxLength={16} onChange={(event) => renamePlayer(index as PlayerIndex, event.target.value)} />
                 <strong>{player.wins} victoire{player.wins > 1 ? "s" : ""}</strong>
+                <small>Meilleur jeu: {bestGameFor(index as PlayerIndex)}</small>
+                <small>{stats.gamesPlayed[index as PlayerIndex]} partie{stats.gamesPlayed[index as PlayerIndex] > 1 ? "s" : ""} gagnee{stats.gamesPlayed[index as PlayerIndex] > 1 ? "s" : ""}</small>
               </label>
             ))}
             <button className="reset-score" onClick={resetWins}>Remettre les victoires a zero</button>
+          </section>
+
+          <section className="settings-panel">
+            <label>
+              Theme
+              <select value={theme} onChange={(event) => setTheme(event.target.value as ThemeName)}>
+                <option value="dark">Sombre</option>
+                <option value="arcade">Arcade</option>
+                <option value="wood">Bois/table</option>
+                <option value="neon">Neon</option>
+              </select>
+            </label>
+            <label>
+              Allumettes
+              <input type="number" min="9" max="41" step="2" value={settings.matchesStart} onChange={(event) => setSettings({ ...settings, matchesStart: Number(event.target.value) })} />
+            </label>
+            <label>
+              Morpion
+              <select value={settings.ticTacToeSize} onChange={(event) => setSettings({ ...settings, ticTacToeSize: Number(event.target.value) as 3 | 4 })}>
+                <option value={3}>3x3</option>
+                <option value={4}>4x4</option>
+              </select>
+            </label>
+            <label>
+              Pendu erreurs
+              <input type="number" min="4" max="10" value={settings.hangmanErrors} onChange={(event) => setSettings({ ...settings, hangmanErrors: Number(event.target.value) })} />
+            </label>
+            <button className={settings.sound ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, sound: !settings.sound })}>Sons</button>
+            <button className={settings.vibration ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, vibration: !settings.vibration })}>Vibrations</button>
+          </section>
+
+          <section className="history-panel">
+            <div>
+              <p className="kicker">Historique</p>
+              <strong>{stats.currentStreak.player === null ? "Aucune serie" : `${players[stats.currentStreak.player].name}: ${stats.currentStreak.count} victoire${stats.currentStreak.count > 1 ? "s" : ""} de suite`}</strong>
+            </div>
+            {stats.history.slice(0, 5).map((entry) => (
+              <div key={entry.id} className="history-row">
+                <span>{entry.gameTitle}</span>
+                <strong>{entry.winnerName}</strong>
+                <small>{new Date(entry.date).toLocaleDateString("fr-FR")} - {entry.score}</small>
+              </div>
+            ))}
           </section>
 
           <div className="game-grid">
