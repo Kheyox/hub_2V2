@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compareVersions, connectFourWinner, yatzyScoreFor, type ConnectFourToken } from "./gameEngines";
+import { compareVersions, connectFourWinner, emptyYatzySheet, yatzyBonusFor, yatzyScoreFor, yatzyTotalFor, type ConnectFourToken } from "./gameEngines";
 
 describe("connectFourWinner", () => {
   it("detecte une ligne horizontale", () => {
@@ -29,6 +29,33 @@ describe("yatzyScoreFor", () => {
   it("score yatzy et chance", () => {
     expect(yatzyScoreFor("yatzy", [6, 6, 6, 6, 6])).toBe(50);
     expect(yatzyScoreFor("chance", [1, 2, 3, 4, 5])).toBe(15);
+  });
+
+  it("score les combinaisons classiques", () => {
+    expect(yatzyScoreFor("onePair", [6, 6, 5, 5, 1])).toBe(12);
+    expect(yatzyScoreFor("twoPairs", [6, 6, 5, 5, 1])).toBe(22);
+    expect(yatzyScoreFor("threeKind", [4, 4, 4, 2, 1])).toBe(12);
+    expect(yatzyScoreFor("fourKind", [3, 3, 3, 3, 6])).toBe(12);
+    expect(yatzyScoreFor("fullHouse", [2, 2, 5, 5, 5])).toBe(19);
+  });
+
+  it("score les suites et refuse les fausses combinaisons", () => {
+    expect(yatzyScoreFor("smallStraight", [1, 2, 3, 4, 5])).toBe(15);
+    expect(yatzyScoreFor("largeStraight", [2, 3, 4, 5, 6])).toBe(20);
+    expect(yatzyScoreFor("smallStraight", [1, 2, 3, 4, 4])).toBe(0);
+    expect(yatzyScoreFor("fullHouse", [2, 2, 2, 2, 5])).toBe(0);
+  });
+
+  it("ajoute le bonus superieur a partir de 63", () => {
+    const sheet = emptyYatzySheet();
+    sheet.ones = 3;
+    sheet.twos = 6;
+    sheet.threes = 9;
+    sheet.fours = 12;
+    sheet.fives = 15;
+    sheet.sixes = 18;
+    expect(yatzyBonusFor(sheet)).toBe(50);
+    expect(yatzyTotalFor(sheet)).toBe(113);
   });
 });
 

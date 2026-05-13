@@ -70,7 +70,7 @@ export const games: GameDefinition[] = [
     accent: "#7fb7ff",
     mood: "Des blancs, table de score",
     category: "Hasard",
-    rules: { objective: "Marquer plus de points que l'autre joueur.", turn: "Lance jusqu'a trois fois, garde des des, puis choisis une categorie.", tips: ["Yatzy vaut 50 points.", "Chance additionne tous les des."] }
+    rules: { objective: "Marquer plus de points que l'autre joueur sur une feuille complete.", turn: "Lance une premiere fois, garde les des utiles, relance jusqu'a deux fois, puis choisis une categorie libre.", tips: ["Le haut donne un bonus de 50 points a partir de 63.", "Paire, double paire, brelan, carre, suites, full, chance et Yatzy sont disponibles.", "Yatzy vaut 50 points."] }
   },
   {
     id: "reversi",

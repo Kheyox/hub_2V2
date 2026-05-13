@@ -1,24 +1,32 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GameHeader } from "../App";
-import { yatzyScoreFor, type YatzyCategory } from "../gameEngines";
+import { emptyYatzySheet, isYatzySheetComplete, yatzyBonusFor, yatzyScoreFor, yatzyTotalFor, yatzyUpperTotal, type YatzyCategory, type YatzyScoreSheet } from "../gameEngines";
 import type { GameProps, PlayerIndex } from "../playerTypes";
 
 type Player = 0 | 1;
 type Category = YatzyCategory;
-type Scores = Record<Category, number | null>;
 
-const categories: Array<{ id: Category; label: string }> = [
+const upperCategories: Array<{ id: Category; label: string }> = [
   { id: "ones", label: "Uns" },
   { id: "twos", label: "Deux" },
   { id: "threes", label: "Trois" },
   { id: "fours", label: "Quatre" },
   { id: "fives", label: "Cinq" },
-  { id: "sixes", label: "Six" },
+  { id: "sixes", label: "Six" }
+];
+
+const lowerCategories: Array<{ id: Category; label: string }> = [
+  { id: "onePair", label: "Paire" },
+  { id: "twoPairs", label: "Double paire" },
+  { id: "threeKind", label: "Brelan" },
+  { id: "fourKind", label: "Carre" },
+  { id: "smallStraight", label: "Petite suite" },
+  { id: "largeStraight", label: "Grande suite" },
+  { id: "fullHouse", label: "Full" },
   { id: "chance", label: "Chance" },
   { id: "yatzy", label: "Yatzy" }
 ];
 
-const emptyScores = (): Scores => ({ ones: null, twos: null, threes: null, fours: null, fives: null, sixes: null, chance: null, yatzy: null });
 const rollDice = (held: boolean[], current: number[]) => current.map((value, index) => (held[index] ? value : Math.ceil(Math.random() * 6)));
 
 export function Yatzy({ players, onWin, feedback }: GameProps) {
@@ -28,9 +36,11 @@ export function Yatzy({ players, onWin, feedback }: GameProps) {
   const [rolls, setRolls] = useState(0);
   const [player, setPlayer] = useState<Player>(0);
   const reportedWinner = useRef<PlayerIndex | null>(null);
-  const [scores, setScores] = useState<[Scores, Scores]>([emptyScores(), emptyScores()]);
-  const totals = useMemo(() => scores.map((sheet) => Object.values(sheet).reduce<number>((sum, value) => sum + (value ?? 0), 0)), [scores]);
-  const finished = scores.every((sheet) => Object.values(sheet).every((value) => value !== null));
+  const [scores, setScores] = useState<[YatzyScoreSheet, YatzyScoreSheet]>([emptyYatzySheet(), emptyYatzySheet()]);
+  const totals = useMemo(() => scores.map(yatzyTotalFor), [scores]);
+  const upperTotals = useMemo(() => scores.map(yatzyUpperTotal), [scores]);
+  const bonuses = useMemo(() => scores.map(yatzyBonusFor), [scores]);
+  const finished = scores.every(isYatzySheetComplete);
   const winnerIndex = totals[0] === totals[1] ? null : ((totals[0] > totals[1] ? 0 : 1) as PlayerIndex);
   const status = finished ? `Fin: ${players[0].name} ${totals[0]} - ${players[1].name} ${totals[1]}` : `${players[player].name} - lancer ${rolls}/3`;
 
@@ -56,7 +66,7 @@ export function Yatzy({ players, onWin, feedback }: GameProps) {
 
   const score = (category: Category) => {
     if (rolls === 0 || scores[player][category] !== null || finished || rolling) return;
-    const next: [Scores, Scores] = [{ ...scores[0] }, { ...scores[1] }];
+    const next: [YatzyScoreSheet, YatzyScoreSheet] = [{ ...scores[0] }, { ...scores[1] }];
     next[player][category] = yatzyScoreFor(category, dice);
     setScores(next);
     setPlayer(player === 0 ? 1 : 0);
@@ -72,7 +82,14 @@ export function Yatzy({ players, onWin, feedback }: GameProps) {
     setRolls(0);
     setPlayer(0);
     reportedWinner.current = null;
-    setScores([emptyScores(), emptyScores()]);
+    setScores([emptyYatzySheet(), emptyYatzySheet()]);
+  };
+
+  const valueFor = (playerIndex: Player, category: Category) => {
+    const stored = scores[playerIndex][category];
+    if (stored !== null) return stored;
+    if (playerIndex === player && rolls > 0 && !finished) return `+${yatzyScoreFor(category, dice)}`;
+    return "-";
   };
 
   return (
@@ -83,7 +100,7 @@ export function Yatzy({ players, onWin, feedback }: GameProps) {
           <button
             key={index}
             className={held[index] ? "die held" : "die"}
-            disabled={rolling}
+            disabled={rolling || rolls === 0 || finished}
             onClick={() => { feedback("tap"); setHeld(held.map((item, itemIndex) => (itemIndex === index ? !item : item))); }}
             aria-label={`De ${index + 1}: ${value}${held[index] ? ", garde" : ""}`}
           >
@@ -96,15 +113,23 @@ export function Yatzy({ players, onWin, feedback }: GameProps) {
         ))}
       </div>
       <button className="primary-action" disabled={rolls >= 3 || finished || rolling} onClick={roll}>
-        {rolling ? "Ca roule..." : "Lancer"}
+        {rolling ? "Ca roule..." : rolls === 0 ? "Lancer les des" : `Relancer (${3 - rolls})`}
       </button>
       <div className="score-table">
         <div className="score-row head"><span>Categorie</span><span>{players[0].name}</span><span>{players[1].name}</span></div>
-        {categories.map((category) => (
+        {upperCategories.map((category) => (
           <button key={category.id} className="score-row" onClick={() => score(category.id)} disabled={scores[player][category.id] !== null || rolls === 0 || finished || rolling}>
             <span>{category.label}</span>
-            <span>{scores[0][category.id] ?? "-"}</span>
-            <span>{scores[1][category.id] ?? "-"}</span>
+            <span>{valueFor(0, category.id)}</span>
+            <span>{valueFor(1, category.id)}</span>
+          </button>
+        ))}
+        <div className="score-row subtotal"><span>Haut / bonus</span><span>{upperTotals[0]} + {bonuses[0]}</span><span>{upperTotals[1]} + {bonuses[1]}</span></div>
+        {lowerCategories.map((category) => (
+          <button key={category.id} className="score-row" onClick={() => score(category.id)} disabled={scores[player][category.id] !== null || rolls === 0 || finished || rolling}>
+            <span>{category.label}</span>
+            <span>{valueFor(0, category.id)}</span>
+            <span>{valueFor(1, category.id)}</span>
           </button>
         ))}
         <div className="score-row total"><span>Total</span><span>{totals[0]}</span><span>{totals[1]}</span></div>

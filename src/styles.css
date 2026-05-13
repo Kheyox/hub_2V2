@@ -2051,6 +2051,9 @@ button {
 .score-table {
   display: grid;
   gap: 6px;
+  max-height: min(52dvh, 470px);
+  overflow: auto;
+  padding-right: 2px;
 }
 
 .score-row {
@@ -2070,11 +2073,17 @@ button {
 }
 
 .score-row.head,
+.score-row.subtotal,
 .score-row.total {
   background: transparent;
   color: #9fb1ad;
   font-size: 0.9rem;
   font-weight: 850;
+}
+
+.score-row.subtotal {
+  min-height: 34px;
+  border-style: dashed;
 }
 
 @media (max-width: 380px) {
