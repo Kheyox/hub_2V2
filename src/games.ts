@@ -70,7 +70,7 @@ export const games: GameDefinition[] = [
     accent: "#7fb7ff",
     mood: "Des blancs, table de score",
     category: "Hasard",
-    rules: { objective: "Marquer plus de points que l'autre joueur sur une feuille complete.", turn: "Lance une premiere fois, garde les des utiles, relance jusqu'a deux fois, puis choisis une categorie libre.", tips: ["Le haut donne un bonus de 50 points a partir de 63.", "Paire, double paire, brelan, carre, suites, full, chance et Yatzy sont disponibles.", "Yatzy vaut 50 points."] }
+      rules: { objective: "Marquer plus de points que l'autre joueur sur une feuille complete.", turn: "Lance une premiere fois, garde les des utiles, relance jusqu'a deux fois, puis choisis une categorie libre.", tips: ["Petite suite = 4 des qui se suivent, 30 points.", "Grande suite = 5 des qui se suivent, 40 points.", "Full vaut 25, Yatzy vaut 50, et le haut donne 50 de bonus a partir de 63."] }
   },
   {
     id: "reversi",
