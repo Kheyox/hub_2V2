@@ -75,12 +75,18 @@ export const yatzyScoreFor = (category: YatzyCategory, dice: number[]) => {
     const value = [...values].reverse().find((item) => counts[item] >= 4);
     return value ? value * 4 : 0;
   }
-  if (category === "smallStraight") return [1, 2, 3, 4, 5].every((value) => counts[value] === 1) ? 15 : 0;
-  if (category === "largeStraight") return [2, 3, 4, 5, 6].every((value) => counts[value] === 1) ? 20 : 0;
+  if (category === "smallStraight") {
+    const unique = new Set(dice);
+    return [1, 2, 3].some((start) => [0, 1, 2, 3].every((offset) => unique.has(start + offset))) ? 30 : 0;
+  }
+  if (category === "largeStraight") {
+    const unique = new Set(dice);
+    return [1, 2].some((start) => [0, 1, 2, 3, 4].every((offset) => unique.has(start + offset))) ? 40 : 0;
+  }
   if (category === "fullHouse") {
     const three = values.find((value) => counts[value] === 3);
     const pair = values.find((value) => counts[value] === 2);
-    return three && pair ? sum : 0;
+    return three && pair ? 25 : 0;
   }
   if (category === "chance") return sum;
   if (category === "yatzy") return dice.every((value) => value === dice[0]) ? 50 : 0;

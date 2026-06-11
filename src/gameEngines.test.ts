@@ -36,14 +36,16 @@ describe("yatzyScoreFor", () => {
     expect(yatzyScoreFor("twoPairs", [6, 6, 5, 5, 1])).toBe(22);
     expect(yatzyScoreFor("threeKind", [4, 4, 4, 2, 1])).toBe(12);
     expect(yatzyScoreFor("fourKind", [3, 3, 3, 3, 6])).toBe(12);
-    expect(yatzyScoreFor("fullHouse", [2, 2, 5, 5, 5])).toBe(19);
+    expect(yatzyScoreFor("fullHouse", [2, 2, 5, 5, 5])).toBe(25);
   });
 
   it("score les suites et refuse les fausses combinaisons", () => {
-    expect(yatzyScoreFor("smallStraight", [3, 1, 4, 5, 2])).toBe(15);
-    expect(yatzyScoreFor("smallStraight", [1, 2, 3, 4, 4])).toBe(0);
-    expect(yatzyScoreFor("largeStraight", [2, 3, 4, 5, 6])).toBe(20);
-    expect(yatzyScoreFor("largeStraight", [1, 2, 3, 4, 5])).toBe(0);
+    expect(yatzyScoreFor("smallStraight", [3, 1, 4, 5, 6])).toBe(30);
+    expect(yatzyScoreFor("smallStraight", [1, 2, 3, 4, 4])).toBe(30);
+    expect(yatzyScoreFor("smallStraight", [1, 2, 3, 5, 5])).toBe(0);
+    expect(yatzyScoreFor("largeStraight", [2, 3, 4, 5, 6])).toBe(40);
+    expect(yatzyScoreFor("largeStraight", [1, 2, 3, 4, 5])).toBe(40);
+    expect(yatzyScoreFor("largeStraight", [1, 2, 3, 4, 6])).toBe(0);
     expect(yatzyScoreFor("fullHouse", [2, 2, 2, 2, 5])).toBe(0);
   });
 

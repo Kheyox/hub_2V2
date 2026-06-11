@@ -20,8 +20,8 @@ const lowerCategories: Array<{ id: Category; label: string }> = [
   { id: "twoPairs", label: "Double paire" },
   { id: "threeKind", label: "Brelan" },
   { id: "fourKind", label: "Carré" },
-  { id: "smallStraight", label: "Petite suite (1-5)" },
-  { id: "largeStraight", label: "Grande suite (2-6)" },
+  { id: "smallStraight", label: "Petite suite" },
+  { id: "largeStraight", label: "Grande suite" },
   { id: "fullHouse", label: "Full" },
   { id: "chance", label: "Chance" },
   { id: "yatzy", label: "Yatzy" }
