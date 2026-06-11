@@ -48,10 +48,7 @@ export const connectFourWinner = (board: ConnectFourToken[], rows = 6, cols = 7)
 export const yatzyScoreFor = (category: YatzyCategory, dice: number[]) => {
   const counts = dice.reduce<Record<number, number>>((current, value) => ({ ...current, [value]: (current[value] || 0) + 1 }), {});
   const values = [1, 2, 3, 4, 5, 6];
-  const hasSequence = (length: number) => {
-    const unique = new Set(dice);
-    return values.some((start) => start + length - 1 <= 6 && Array.from({ length }, (_, index) => start + index).every((value) => unique.has(value)));
-  };
+  const sum = dice.reduce((total, value) => total + value, 0);
   const targetByCategory: Partial<Record<YatzyCategory, number>> = {
     ones: 1,
     twos: 2,
@@ -61,31 +58,31 @@ export const yatzyScoreFor = (category: YatzyCategory, dice: number[]) => {
     sixes: 6
   };
   const upperTarget = targetByCategory[category];
-  if (upperTarget) return dice.filter((value) => value === upperTarget).reduce((sum, value) => sum + value, 0);
+  if (upperTarget) return dice.filter((value) => value === upperTarget).reduce((total, value) => total + value, 0);
   if (category === "onePair") {
     const pair = [...values].reverse().find((value) => counts[value] >= 2);
     return pair ? pair * 2 : 0;
   }
   if (category === "twoPairs") {
     const pairs = [...values].reverse().filter((value) => counts[value] >= 2).slice(0, 2);
-    return pairs.length === 2 ? pairs.reduce((sum, value) => sum + value * 2, 0) : 0;
+    return pairs.length === 2 ? pairs.reduce((total, value) => total + value * 2, 0) : 0;
   }
   if (category === "threeKind") {
     const value = [...values].reverse().find((item) => counts[item] >= 3);
-    return value ? dice.reduce((sum, item) => sum + item, 0) : 0;
+    return value ? value * 3 : 0;
   }
   if (category === "fourKind") {
     const value = [...values].reverse().find((item) => counts[item] >= 4);
-    return value ? dice.reduce((sum, item) => sum + item, 0) : 0;
+    return value ? value * 4 : 0;
   }
-  if (category === "smallStraight") return hasSequence(4) ? 30 : 0;
-  if (category === "largeStraight") return hasSequence(5) ? 40 : 0;
+  if (category === "smallStraight") return [1, 2, 3, 4, 5].every((value) => counts[value] === 1) ? 15 : 0;
+  if (category === "largeStraight") return [2, 3, 4, 5, 6].every((value) => counts[value] === 1) ? 20 : 0;
   if (category === "fullHouse") {
-    const hasThree = values.some((value) => counts[value] === 3);
-    const hasPair = values.some((value) => counts[value] === 2);
-    return hasThree && hasPair ? 25 : 0;
+    const three = values.find((value) => counts[value] === 3);
+    const pair = values.find((value) => counts[value] === 2);
+    return three && pair ? sum : 0;
   }
-  if (category === "chance") return dice.reduce((sum, value) => sum + value, 0);
+  if (category === "chance") return sum;
   if (category === "yatzy") return dice.every((value) => value === dice[0]) ? 50 : 0;
   return 0;
 };

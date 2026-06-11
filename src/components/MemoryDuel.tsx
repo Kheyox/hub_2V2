@@ -14,7 +14,7 @@ export function MemoryDuel({ players, onWin }: GameProps) {
   const reported = useRef(false);
   const finished = found.length === deck.length;
   const winner = score[0] === score[1] ? null : (score[0] > score[1] ? 0 : 1) as PlayerIndex;
-  const status = finished ? (winner === null ? "Egalite" : `${players[winner].name} gagne`) : `${players[turn].name} cherche une paire`;
+  const status = finished ? (winner === null ? "Égalité" : `${players[winner].name} gagne`) : `${players[turn].name} cherche une paire`;
 
   useEffect(() => {
     if (!finished || winner === null || reported.current) return;
@@ -51,7 +51,10 @@ export function MemoryDuel({ players, onWin }: GameProps) {
   return (
     <>
       <GameHeader title="Memory" status={status} onReset={reset} />
-      <div className="duel-score"><span>{players[0].name}: {score[0]}</span><span>{players[1].name}: {score[1]}</span></div>
+      <div className="duel-score">
+        <span className={turn === 0 && !finished ? "active" : ""}>{players[0].name} · {score[0]} paires</span>
+        <span className={turn === 1 && !finished ? "active" : ""}>{players[1].name} · {score[1]} paires</span>
+      </div>
       <div className="memory-board">
         {deck.map((card, index) => {
           const visible = open.includes(index) || found.includes(index);

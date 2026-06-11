@@ -22,7 +22,8 @@ export function Quarto({ players, onWin }: GameProps) {
   const [phase, setPhase] = useState<"place" | "choose">("choose");
   const reported = useRef(false);
   const winner = hasQuarto(board) ? turn : null;
-  const status = winner === null ? (phase === "place" ? `${players[turn].name} place` : `${players[turn].name} choisit`) : `${players[winner].name} gagne`;
+  const isDraw = winner === null && board.every((cell) => cell !== null);
+  const status = winner !== null ? `${players[winner].name} gagne` : isDraw ? "Match nul" : phase === "place" ? `${players[turn].name} place la pièce` : `${players[turn].name} choisit la pièce adverse`;
   const remaining = useMemo(() => available.filter((item) => item !== piece), [available, piece]);
 
   useEffect(() => {
@@ -60,10 +61,13 @@ export function Quarto({ players, onWin }: GameProps) {
   return (
     <>
       <GameHeader title="Quarto" status={status} onReset={reset} />
-      <div className="quarto-current">Piece a placer: {piece === null ? "-" : piece + 1}</div>
+      <div className="quarto-current">
+        {piece === null ? <span>Pièce à placer : aucune</span> : <>Pièce à placer : <QuartoPiece value={piece} /></>}
+      </div>
       <div className="quarto-board">
         {board.map((placed, index) => <button key={index} className="quarto-cell" onClick={() => place(index)}>{placed !== null && <QuartoPiece value={placed} />}</button>)}
       </div>
+      <p className="hand-label">{phase === "choose" && winner === null && !isDraw ? `${players[turn].name} choisit une pièce pour l'adversaire` : "Pièces restantes"}</p>
       <div className="piece-bank">
         {remaining.map((item) => <button key={item} disabled={phase !== "choose"} onClick={() => choose(item)}><QuartoPiece value={item} /></button>)}
       </div>

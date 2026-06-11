@@ -64,11 +64,15 @@ export function Battleship({ players, onWin }: GameProps) {
   return (
     <>
       <GameHeader title="Bataille navale" status={status} onReset={reset} />
-      <div className="duel-score"><span>{players[0].name}: {left[0]} cases</span><span>{players[1].name}: {left[1]} cases</span></div>
+      <div className="duel-score">
+        <span className={turn === 0 && winner === null ? "active" : ""}>{players[0].name} · {left[0]} cases à couler</span>
+        <span className={turn === 1 && winner === null ? "active" : ""}>{players[1].name} · {left[1]} cases à couler</span>
+      </div>
+      <p className="hand-label">Flotte de {players[winner === null ? target : (winner === 0 ? 1 : 0)].name} — un tir touché fait rejouer</p>
       <div className="battle-board">
-        {boards[target].map((cell, index) => (
-          <button key={index} className={`battle-cell ${cell.hit ? (cell.ship !== null ? "hit" : "miss") : ""}`} onClick={() => attack(index)} aria-label={`Tir ${index + 1}`}>
-            {cell.hit ? (cell.ship !== null ? "X" : ".") : ""}
+        {boards[winner === null ? target : (winner === 0 ? 1 : 0)].map((cell, index) => (
+          <button key={index} className={`battle-cell ${cell.hit ? (cell.ship !== null ? "hit" : "miss") : ""}`} onClick={() => attack(index)} aria-label={`Tir case ${index + 1}`}>
+            {cell.hit ? (cell.ship !== null ? "✕" : "•") : ""}
           </button>
         ))}
       </div>

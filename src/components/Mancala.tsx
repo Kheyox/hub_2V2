@@ -15,7 +15,7 @@ export function Mancala({ players, onWin }: GameProps) {
   const finished = sideEmpty(pits, 0) || sideEmpty(pits, 1);
   const finalStores: [number, number] = finished ? [stores[0] + pits.slice(0, 6).reduce((a, b) => a + b, 0), stores[1] + pits.slice(6).reduce((a, b) => a + b, 0)] : stores;
   const winner = finalStores[0] === finalStores[1] ? null : (finalStores[0] > finalStores[1] ? 0 : 1) as PlayerIndex;
-  const status = finished ? (winner === null ? "Egalite" : `${players[winner].name} gagne`) : `${players[turn].name} seme`;
+  const status = finished ? (winner === null ? "Égalité" : `${players[winner].name} gagne`) : `${players[turn].name} sème`;
 
   useEffect(() => {
     if (!finished || winner === null || reported.current) return;
@@ -65,15 +65,28 @@ export function Mancala({ players, onWin }: GameProps) {
 
   return (
     <>
-      <GameHeader title="Awale" status={status} onReset={reset} />
-      <div className="duel-score"><span>{players[0].name}: {finalStores[0]}</span><span>{players[1].name}: {finalStores[1]}</span></div>
-      <div className="mancala-board">
-        {pits.map((stones, index) => (
-          <button key={index} className={turn === 0 ? "mancala-pit p1" : "mancala-pit p2"} onClick={() => play(index)}>
-            <strong>{stones}</strong>
-          </button>
-        ))}
+      <GameHeader title="Mancala" status={status} onReset={reset} />
+      <div className="duel-score">
+        <span className={turn === 0 && !finished ? "active" : ""}>{players[0].name} · {finalStores[0]} graines</span>
+        <span className={turn === 1 && !finished ? "active" : ""}>{players[1].name} · {finalStores[1]} graines</span>
       </div>
+      <div className="mancala-board">
+        <div className="mancala-store store-1" aria-label={`Grenier de ${players[1].name}`}>{stores[1]}</div>
+        <div className="mancala-pits">
+          {[11, 10, 9, 8, 7, 6].map((index) => (
+            <button key={index} className={`mancala-pit ${turn === 1 && !finished && pits[index] > 0 ? "playable" : ""}`} onClick={() => play(index)} aria-label={`Case ${index + 1}: ${pits[index]} graines`}>
+              <strong>{pits[index]}</strong>
+            </button>
+          ))}
+          {[0, 1, 2, 3, 4, 5].map((index) => (
+            <button key={index} className={`mancala-pit ${turn === 0 && !finished && pits[index] > 0 ? "playable" : ""}`} onClick={() => play(index)} aria-label={`Case ${index + 1}: ${pits[index]} graines`}>
+              <strong>{pits[index]}</strong>
+            </button>
+          ))}
+        </div>
+        <div className="mancala-store store-0" aria-label={`Grenier de ${players[0].name}`}>{stores[0]}</div>
+      </div>
+      <p className="hand-label">Rangée du bas : {players[0].name} · Rangée du haut : {players[1].name}. Un dernier coup dans ton grenier rejoue.</p>
     </>
   );
 }

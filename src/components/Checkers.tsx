@@ -49,13 +49,17 @@ export function Checkers({ players, onWin }: GameProps) {
   const [board, setBoard] = useState<Piece[]>(initial);
   const [turn, setTurn] = useState<PlayerIndex>(0);
   const [selected, setSelected] = useState<number | null>(null);
+  const [chain, setChain] = useState<number | null>(null);
   const reported = useRef(false);
   const counts = useMemo(() => [board.filter((piece) => owner(piece) === 0).length, board.filter((piece) => owner(piece) === 1).length] as [number, number], [board]);
-  const legalMoves = useMemo(() => legalMovesFor(board, turn), [board, turn]);
+  const legalMoves = useMemo(() => {
+    if (chain !== null) return movesFor(board, chain).filter((move) => move.capture !== undefined).map((move) => ({ from: chain, ...move }));
+    return legalMovesFor(board, turn);
+  }, [board, turn, chain]);
   const mustCapture = legalMoves.some((move) => move.capture !== undefined);
   const winner = counts[0] === 0 ? 1 : counts[1] === 0 ? 0 : legalMoves.length === 0 ? (turn === 0 ? 1 : 0) as PlayerIndex : null;
   const possible = selected === null ? [] : legalMoves.filter((move) => move.from === selected);
-  const status = winner === null ? `${players[turn].name} ${mustCapture ? "doit prendre" : "avance"}` : `${players[winner].name} gagne`;
+  const status = winner === null ? `${players[turn].name} ${chain !== null ? "enchaîne la prise" : mustCapture ? "doit prendre" : "avance"}` : `${players[winner].name} gagne`;
 
   useEffect(() => {
     if (winner === null || reported.current) return;
@@ -65,7 +69,7 @@ export function Checkers({ players, onWin }: GameProps) {
 
   const click = (index: number) => {
     if (winner !== null) return;
-    if (owner(board[index]) === turn) {
+    if (owner(board[index]) === turn && chain === null) {
       if (!legalMoves.some((move) => move.from === index)) return;
       setSelected(index);
       return;
@@ -77,10 +81,18 @@ export function Checkers({ players, onWin }: GameProps) {
     next[selected] = null;
     if (move.capture !== undefined) next[move.capture] = null;
     const row = Math.floor(move.to / size);
+    const promoted = (piece === "r" && row === 0) || (piece === "b" && row === size - 1);
     if (piece === "r" && row === 0) piece = "R";
     if (piece === "b" && row === size - 1) piece = "B";
     next[move.to] = piece;
     setBoard(next);
+    const canChain = move.capture !== undefined && !promoted && movesFor(next, move.to).some((item) => item.capture !== undefined);
+    if (canChain) {
+      setChain(move.to);
+      setSelected(move.to);
+      return;
+    }
+    setChain(null);
     setSelected(null);
     setTurn(turn === 0 ? 1 : 0);
   };
@@ -90,15 +102,19 @@ export function Checkers({ players, onWin }: GameProps) {
     setBoard(initial());
     setTurn(0);
     setSelected(null);
+    setChain(null);
   };
 
   return (
     <>
       <GameHeader title="Dames" status={status} onReset={reset} />
-      <div className="duel-score"><span>{players[0].name}: {counts[0]}</span><span>{players[1].name}: {counts[1]}</span></div>
+      <div className="duel-score">
+        <span className={turn === 0 && winner === null ? "active" : ""}>{players[0].name} · {counts[0]} pions</span>
+        <span className={turn === 1 && winner === null ? "active" : ""}>{players[1].name} · {counts[1]} pions</span>
+      </div>
       <div className="checkers-board">
         {board.map((piece, index) => (
-          <button key={index} className={`checker-cell ${(Math.floor(index / size) + index) % 2 ? "dark" : ""} ${possible.some((move) => move.to === index) ? "valid" : ""}`} onClick={() => click(index)}>
+          <button key={index} className={`checker-cell ${(Math.floor(index / size) + index) % 2 ? "dark" : ""} ${possible.some((move) => move.to === index) ? "valid" : ""} ${selected === index ? "selected" : ""}`} onClick={() => click(index)}>
             {piece && <span className={`checker-piece ${owner(piece) === 0 ? "red" : "black"} ${isKing(piece) ? "king" : ""}`} />}
           </button>
         ))}

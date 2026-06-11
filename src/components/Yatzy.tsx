@@ -19,9 +19,9 @@ const lowerCategories: Array<{ id: Category; label: string }> = [
   { id: "onePair", label: "Paire" },
   { id: "twoPairs", label: "Double paire" },
   { id: "threeKind", label: "Brelan" },
-  { id: "fourKind", label: "Carre" },
-  { id: "smallStraight", label: "Petite suite" },
-  { id: "largeStraight", label: "Grande suite" },
+  { id: "fourKind", label: "Carré" },
+  { id: "smallStraight", label: "Petite suite (1-5)" },
+  { id: "largeStraight", label: "Grande suite (2-6)" },
   { id: "fullHouse", label: "Full" },
   { id: "chance", label: "Chance" },
   { id: "yatzy", label: "Yatzy" }
@@ -42,7 +42,9 @@ export function Yatzy({ players, onWin, feedback }: GameProps) {
   const bonuses = useMemo(() => scores.map(yatzyBonusFor), [scores]);
   const finished = scores.every(isYatzySheetComplete);
   const winnerIndex = totals[0] === totals[1] ? null : ((totals[0] > totals[1] ? 0 : 1) as PlayerIndex);
-  const status = finished ? `Fin: ${players[0].name} ${totals[0]} - ${players[1].name} ${totals[1]}` : `${players[player].name} - lancer ${rolls}/3`;
+  const status = finished
+    ? (winnerIndex === null ? `Égalité ${totals[0]} - ${totals[1]}` : `${players[winnerIndex].name} gagne ${totals[winnerIndex]} - ${totals[winnerIndex === 0 ? 1 : 0]}`)
+    : `${players[player].name} · lancer ${rolls}/3`;
 
   useEffect(() => {
     if (!finished || winnerIndex === null || reportedWinner.current === winnerIndex) return;
@@ -113,10 +115,10 @@ export function Yatzy({ players, onWin, feedback }: GameProps) {
         ))}
       </div>
       <button className="primary-action" disabled={rolls >= 3 || finished || rolling} onClick={roll}>
-        {rolling ? "Ca roule..." : rolls === 0 ? "Lancer les des" : `Relancer (${3 - rolls})`}
+        {rolling ? "Ça roule..." : rolls === 0 ? "Lancer les dés" : `Relancer (${3 - rolls} restant${3 - rolls > 1 ? "s" : ""})`}
       </button>
       <div className="score-table">
-        <div className="score-row head"><span>Categorie</span><span>{players[0].name}</span><span>{players[1].name}</span></div>
+        <div className="score-row head"><span>Catégorie</span><span>{players[0].name}</span><span>{players[1].name}</span></div>
         {upperCategories.map((category) => (
           <button key={category.id} className="score-row" onClick={() => score(category.id)} disabled={scores[player][category.id] !== null || rolls === 0 || finished || rolling}>
             <span>{category.label}</span>

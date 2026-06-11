@@ -30,9 +30,10 @@ export function Dominoes({ players, onWin }: GameProps) {
   const ends = line.length ? [line[0][0], line[line.length - 1][1]] : null;
   const playable = (tile: Domino) => !ends || tile.includes(ends[0]) || tile.includes(ends[1]);
   const canPlay = hands[turn].some(playable);
-  const blocked = stock.length === 0 && !hands[0].some(playable) && !hands[1].some(playable);
-  const winner = hands[0].length === 0 ? 0 : hands[1].length === 0 ? 1 : blocked ? (pips(hands[0]) === pips(hands[1]) ? null : (pips(hands[0]) < pips(hands[1]) ? 0 : 1) as PlayerIndex) : null;
-  const status = winner === null ? `${players[turn].name} pose` : `${players[winner].name} gagne`;
+  const blocked = stock.length === 0 && !hands[0].some(playable) && !hands[1].some(playable) && hands[0].length > 0 && hands[1].length > 0;
+  const winner = hands[0].length === 0 && line.length > 0 ? 0 : hands[1].length === 0 && line.length > 0 ? 1 : blocked ? (pips(hands[0]) === pips(hands[1]) ? null : (pips(hands[0]) < pips(hands[1]) ? 0 : 1) as PlayerIndex) : null;
+  const finished = winner !== null || blocked;
+  const status = winner !== null ? `${players[winner].name} gagne` : blocked ? `Bloqué — égalité ${pips(hands[0])} - ${pips(hands[1])}` : `${players[turn].name} ${canPlay ? "pose" : "pioche"}`;
 
   const reset = () => {
     const set = makeSet();
@@ -48,7 +49,7 @@ export function Dominoes({ players, onWin }: GameProps) {
     setHands(nextHands);
     setStock(set.slice(14));
     setLine(opening ? [opening] : []);
-    setTurn(starter === 0 ? 1 : 0);
+    setTurn(opening ? (starter === 0 ? 1 : 0) : starter);
   };
 
   useEffect(reset, []);
@@ -74,7 +75,7 @@ export function Dominoes({ players, onWin }: GameProps) {
   };
 
   const draw = () => {
-    if (!stock.length || winner !== null) return;
+    if (!stock.length || canPlay || finished) return;
     const nextHands: [Domino[], Domino[]] = [[...hands[0]], [...hands[1]]];
     nextHands[turn].push(stock[0]);
     setHands(nextHands);
@@ -82,19 +83,27 @@ export function Dominoes({ players, onWin }: GameProps) {
   };
 
   const pass = () => {
-    if (stock.length || canPlay || winner !== null) return;
+    if (stock.length || canPlay || finished) return;
     setTurn(turn === 0 ? 1 : 0);
   };
 
   return (
     <>
       <GameHeader title="Dominos" status={status} onReset={reset} />
-      <div className="domino-line">{line.map((tile, index) => <span key={index} className="domino-tile">{tile[0]}|{tile[1]}</span>)}</div>
-      <div className="domino-hand">
-        {hands[turn].map((tile, index) => <button key={`${tile[0]}-${tile[1]}-${index}`} className="domino-tile" disabled={!playable(tile)} onClick={() => play(index)}>{tile[0]}|{tile[1]}</button>)}
+      <div className="duel-score">
+        <span className={turn === 0 && !finished ? "active" : ""}>{players[0].name} · {hands[0].length} dominos</span>
+        <span className={turn === 1 && !finished ? "active" : ""}>{players[1].name} · {hands[1].length} dominos</span>
       </div>
-      <button className="primary-action" onClick={stock.length ? draw : pass} disabled={stock.length ? false : canPlay}>
-        {stock.length ? `Piocher (${stock.length})` : "Passer"}
+      <div className="domino-line">
+        {line.length === 0 && <span className="empty-state">Pose le premier domino</span>}
+        {line.map((tile, index) => <span key={index} className="domino-tile">{tile[0]}|{tile[1]}</span>)}
+      </div>
+      <p className="hand-label">Main de {players[turn].name}</p>
+      <div className="domino-hand">
+        {hands[turn].map((tile, index) => <button key={`${tile[0]}-${tile[1]}-${index}`} className="domino-tile" disabled={!playable(tile) || finished} onClick={() => play(index)}>{tile[0]}|{tile[1]}</button>)}
+      </div>
+      <button className="primary-action" onClick={stock.length ? draw : pass} disabled={canPlay || finished}>
+        {stock.length ? `Piocher (${stock.length} en pioche)` : "Passer son tour"}
       </button>
     </>
   );

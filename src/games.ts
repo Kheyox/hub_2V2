@@ -22,8 +22,7 @@ export type GameDefinition = {
   subtitle: string;
   icon: LucideIcon;
   accent: string;
-  mood: string;
-  category: "Rapide" | "Strategie" | "Hasard" | "Deduction";
+  category: "Rapide" | "Stratégie" | "Hasard" | "Déduction";
   rules: {
     objective: string;
     turn: string;
@@ -35,42 +34,59 @@ export const games: GameDefinition[] = [
   {
     id: "tictactoe",
     title: "Morpion",
-    subtitle: "Duel rapide en 3x3",
+    subtitle: "Duel éclair en 3x3",
     icon: Grid3X3,
     accent: "#39c6a3",
-    mood: "Grille claire, duel instantane",
     category: "Rapide",
-    rules: { objective: "Aligner tous ses symboles avant l'autre joueur.", turn: "Chaque joueur pose un symbole dans une case libre.", tips: ["En 4x4, il faut remplir une ligne de 4.", "Les diagonales comptent."] }
+    rules: {
+      objective: "Aligner 3 symboles identiques (4 en mode 4x4) en ligne, colonne ou diagonale.",
+      turn: "Chacun son tour, pose ton symbole dans une case libre.",
+      tips: ["Le centre est la case la plus forte en 3x3.", "La taille de la grille se règle dans Options."]
+    }
   },
   {
     id: "connect4",
     title: "Puissance 4",
-    subtitle: "Aligne quatre pions",
+    subtitle: "Aligne quatre jetons",
     icon: Rows3,
     accent: "#f3c14b",
-    mood: "Jetons lourds, plateau vertical",
-    category: "Strategie",
-    rules: { objective: "Aligner quatre jetons horizontalement, verticalement ou en diagonale.", turn: "Choisis une colonne, le jeton tombe au plus bas.", tips: ["Un coup qui touche donne quand meme le tour suivant.", "Bloque les menaces de trois jetons."] }
+    category: "Stratégie",
+    rules: {
+      objective: "Aligner quatre jetons horizontalement, verticalement ou en diagonale.",
+      turn: "Choisis une colonne : le jeton tombe au plus bas.",
+      tips: ["Bloque les alignements de trois jetons adverses.", "Construis des doubles menaces pour forcer la victoire."]
+    }
   },
   {
     id: "hangman",
     title: "Pendu",
-    subtitle: "Un mot, six erreurs",
+    subtitle: "Un mot, peu d'erreurs",
     icon: CircleDot,
     accent: "#ef7a59",
-    mood: "Mot secret, tension douce",
-    category: "Deduction",
-    rules: { objective: "Le devineur doit trouver le mot avant d'epuiser les erreurs.", turn: "Un joueur cache le mot, l'autre propose des lettres.", tips: ["Les accents sont retires automatiquement.", "Si le devineur perd, le joueur qui a choisi le mot gagne."] }
+    category: "Déduction",
+    rules: {
+      objective: "Le devineur doit trouver le mot avant d'épuiser ses erreurs.",
+      turn: "Un joueur cache un mot, l'autre propose des lettres une par une.",
+      tips: ["Les accents sont retirés automatiquement.", "Si le devineur perd, celui qui a choisi le mot gagne la manche.", "Le nombre d'erreurs se règle dans Options."]
+    }
   },
   {
     id: "yatzy",
     title: "Yatzy",
-    subtitle: "Des, choix, sang-froid",
+    subtitle: "Dés, choix, sang-froid",
     icon: Dice5,
     accent: "#7fb7ff",
-    mood: "Des blancs, table de score",
     category: "Hasard",
-      rules: { objective: "Marquer plus de points que l'autre joueur sur une feuille complete.", turn: "Lance une premiere fois, garde les des utiles, relance jusqu'a deux fois, puis choisis une categorie libre.", tips: ["Petite suite = 4 des qui se suivent, 30 points.", "Grande suite = 5 des qui se suivent, 40 points.", "Full vaut 25, Yatzy vaut 50, et le haut donne 50 de bonus a partir de 63."] }
+    rules: {
+      objective: "Marquer plus de points que l'adversaire en remplissant toute la feuille de score.",
+      turn: "Lance les 5 dés, garde ceux qui t'intéressent, relance jusqu'à 2 fois, puis choisis une catégorie libre.",
+      tips: [
+        "Brelan = 3 × la valeur, carré = 4 × la valeur.",
+        "Petite suite (1-2-3-4-5) = 15 pts, grande suite (2-3-4-5-6) = 20 pts.",
+        "Full = somme des 5 dés, Yatzy = 50 pts.",
+        "63 points ou plus en haut de feuille = bonus de 50."
+      ]
+    }
   },
   {
     id: "reversi",
@@ -78,19 +94,25 @@ export const games: GameDefinition[] = [
     subtitle: "Retourne le plateau",
     icon: Sparkles,
     accent: "#39c6a3",
-    mood: "Disques qui retournent",
-    category: "Strategie",
-    rules: { objective: "Avoir plus de pions que l'adversaire en fin de partie.", turn: "Pose un pion sur une case valide pour encadrer et retourner des pions.", tips: ["Les coups valides sont marques.", "Les coins sont tres puissants."] }
+    category: "Stratégie",
+    rules: {
+      objective: "Avoir plus de pions de sa couleur que l'adversaire à la fin.",
+      turn: "Pose un pion qui encadre une ligne de pions adverses : ils sont retournés.",
+      tips: ["Les coups valides sont marqués sur le plateau.", "Les coins sont imprenables : vise-les.", "Sans coup possible, le tour passe automatiquement."]
+    }
   },
   {
     id: "matches",
     title: "Allumettes",
-    subtitle: "Ne prends pas la derniere",
+    subtitle: "Ne prends pas la dernière",
     icon: Flame,
     accent: "#ef7a59",
-    mood: "Allumettes, piege final",
     category: "Rapide",
-    rules: { objective: "Forcer l'autre joueur a prendre la derniere allumette.", turn: "Prends 1, 2 ou 3 allumettes.", tips: ["Le nombre de depart est reglable.", "Essaie de laisser 1, 5, 9, 13..."] }
+    rules: {
+      objective: "Forcer l'adversaire à prendre la dernière allumette.",
+      turn: "Prends 1, 2 ou 3 allumettes.",
+      tips: ["Le nombre de départ se règle dans Options.", "Astuce : laisse 1, 5, 9, 13... allumettes à l'adversaire."]
+    }
   },
   {
     id: "mastermind",
@@ -98,29 +120,38 @@ export const games: GameDefinition[] = [
     subtitle: "Code secret en duel",
     icon: Brain,
     accent: "#d89cff",
-    mood: "Code couleur, deduction",
-    category: "Deduction",
-    rules: { objective: "Deviner le code secret en huit essais.", turn: "Le codeur choisit 4 couleurs, le devineur propose des combinaisons.", tips: ["Bien = bonne couleur au bon endroit.", "Couleur = bonne couleur au mauvais endroit."] }
+    category: "Déduction",
+    rules: {
+      objective: "Deviner le code secret de 4 couleurs en 8 essais maximum.",
+      turn: "Un joueur compose le code en secret, l'autre propose des combinaisons.",
+      tips: ["« Bien » = bonne couleur à la bonne place.", "« Mal placé » = bonne couleur, mauvaise position.", "Les couleurs peuvent se répéter dans le code."]
+    }
   },
   {
     id: "battleship",
     title: "Bataille navale",
-    subtitle: "Touche et coule",
+    subtitle: "Touché... coulé !",
     icon: Ship,
     accent: "#7fb7ff",
-    mood: "Radar bleu, tirs caches",
-    category: "Strategie",
-    rules: { objective: "Detruire tous les navires adverses.", turn: "Attaque une case du plateau ennemi. Un tir touche te laisse jouer.", tips: ["Les navires sont generes automatiquement.", "Les tirs deja joues restent visibles."] }
+    category: "Stratégie",
+    rules: {
+      objective: "Couler toute la flotte adverse (3 navires placés au hasard).",
+      turn: "Tire sur une case de la grille ennemie. Si tu touches, tu rejoues.",
+      tips: ["Les flottes sont placées automatiquement au hasard.", "✕ = touché, • = manqué.", "Quand tu touches, tire sur les cases voisines."]
+    }
   },
   {
     id: "checkers",
     title: "Dames",
-    subtitle: "Prends les pions",
+    subtitle: "Prises et rafles",
     icon: Swords,
     accent: "#f5c84c",
-    mood: "Damier bois, prises forcees",
-    category: "Strategie",
-    rules: { objective: "Capturer tous les pions adverses ou bloquer l'autre joueur.", turn: "Deplace un pion en diagonale. Les prises sont prioritaires.", tips: ["Un pion arrive au bout devient dame.", "Les cases de destination valides sont marquees."] }
+    category: "Stratégie",
+    rules: {
+      objective: "Capturer tous les pions adverses ou bloquer tous leurs coups.",
+      turn: "Déplace un pion en diagonale. La prise est obligatoire et les prises s'enchaînent.",
+      tips: ["Un pion qui atteint la dernière rangée devient dame.", "Les cases de destination valides sont surlignées.", "Après une prise, si le même pion peut reprendre, il continue."]
+    }
   },
   {
     id: "dominoes",
@@ -128,29 +159,38 @@ export const games: GameDefinition[] = [
     subtitle: "Pose ou pioche",
     icon: Table2,
     accent: "#39c6a3",
-    mood: "Pieces ivoire, ligne centrale",
-    category: "Strategie",
-    rules: { objective: "Te debarrasser de tes dominos ou finir avec le moins de points.", turn: "Pose un domino compatible avec une extremite ou pioche.", tips: ["Le double le plus fort commence.", "Si personne ne peut jouer, le moins de points gagne."] }
+    category: "Stratégie",
+    rules: {
+      objective: "Être le premier à poser tous ses dominos.",
+      turn: "Pose un domino dont une face correspond à une extrémité de la chaîne. Sinon, pioche jusqu'à pouvoir jouer.",
+      tips: ["Le plus fort double commence la partie.", "Pioche vide et personne ne peut jouer : le moins de points en main gagne."]
+    }
   },
   {
     id: "mancala",
-    title: "Awale",
-    subtitle: "Seme les graines",
+    title: "Mancala",
+    subtitle: "Sème les graines",
     icon: Landmark,
     accent: "#ef7a59",
-    mood: "Graines, bois creuse",
-    category: "Strategie",
-    rules: { objective: "Avoir le plus de graines dans ton grenier.", turn: "Choisis une case de ton camp et seme les graines une par une.", tips: ["Finir dans ton grenier donne un tour bonus.", "Le jeu finit quand un camp est vide."] }
+    category: "Stratégie",
+    rules: {
+      objective: "Récolter plus de graines que l'adversaire dans son grenier.",
+      turn: "Choisis une case de ta rangée et sème les graines une par une dans le sens anti-horaire.",
+      tips: ["Si la dernière graine tombe dans ton grenier, tu rejoues.", "Dernière graine dans une de tes cases vide : tu captures la case d'en face.", "La partie s'arrête quand une rangée est vide."]
+    }
   },
   {
     id: "quarto",
     title: "Quarto",
-    subtitle: "Quatre pieces, un trait",
+    subtitle: "Quatre pièces, un point commun",
     icon: Puzzle,
     accent: "#d89cff",
-    mood: "Pieces abstraites, piege logique",
-    category: "Deduction",
-    rules: { objective: "Former une ligne de 4 pieces partageant un attribut.", turn: "Place la piece donnee, puis choisis la piece que l'autre devra placer.", tips: ["Les attributs: taille, forme, couleur, plein/creux.", "La ligne peut etre une rangee, colonne ou diagonale."] }
+    category: "Déduction",
+    rules: {
+      objective: "Former une ligne de 4 pièces partageant au moins un attribut commun.",
+      turn: "Place la pièce que l'adversaire t'a donnée, puis choisis celle qu'il devra placer.",
+      tips: ["4 attributs : taille, forme, couleur, plein/creux.", "C'est toi qui donnes ses pièces à l'adversaire : ne lui offre pas la victoire.", "Lignes, colonnes et diagonales comptent."]
+    }
   },
   {
     id: "memory",
@@ -158,8 +198,11 @@ export const games: GameDefinition[] = [
     subtitle: "Trouve les paires",
     icon: Grid3X3,
     accent: "#7fb7ff",
-    mood: "Cartes retournees, memoire",
     category: "Rapide",
-    rules: { objective: "Trouver plus de paires que l'autre joueur.", turn: "Retourne deux cartes. Si elles correspondent, tu marques et rejoues.", tips: ["Memorise les emplacements.", "Une mauvaise paire passe le tour."] }
+    rules: {
+      objective: "Retourner plus de paires que l'adversaire.",
+      turn: "Retourne deux cartes. Une paire : tu marques et tu rejoues. Sinon, c'est à l'autre.",
+      tips: ["Mémorise aussi les cartes ratées par l'adversaire.", "16 cartes, 8 paires : la majorité est à 5."]
+    }
   }
 ];

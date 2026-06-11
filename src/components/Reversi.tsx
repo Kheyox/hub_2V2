@@ -72,8 +72,8 @@ export function Reversi({ players, onWin }: GameProps) {
   const finished = board.every(Boolean) || (!moves.length && !nextMoves.length);
   const skipped = !finished && !moves.length;
   const winnerIndex = points.B === points.W ? null : ((points.B > points.W ? 0 : 1) as PlayerIndex);
-  const leader = winnerIndex === null ? "Egalite" : `${players[winnerIndex].name} mene`;
-  const status = finished ? `${leader} ${points.B}-${points.W}` : skipped ? `Passe: ${player === "B" ? players[0].name : players[1].name}` : `${player === "B" ? players[0].name : players[1].name} joue`;
+  const leader = winnerIndex === null ? "Égalité" : `${players[winnerIndex].name} gagne`;
+  const status = finished ? `${leader} ${points.B}-${points.W}` : skipped ? `${player === "B" ? players[0].name : players[1].name} passe son tour` : `${player === "B" ? players[0].name : players[1].name} joue`;
   const validSet = new Map(moves.map((move) => [move.index, move.flips]));
 
   useEffect(() => {

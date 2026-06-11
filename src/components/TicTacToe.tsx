@@ -25,7 +25,7 @@ export function TicTacToe({ players, settings, onWin, feedback }: GameProps) {
   const winner = useMemo(() => getWinner(board, size), [board, size]);
   const isDraw = !winner && board.every(Boolean);
   const playerName = (symbol: Player) => players[symbol === "X" ? 0 : 1].name;
-  const status = winner ? `${playerName(winner)} gagne` : isDraw ? "Match nul" : `A ${playerName(turn)} de jouer`;
+  const status = winner ? `${playerName(winner)} gagne` : isDraw ? "Match nul" : `À ${playerName(turn)} de jouer (${turn})`;
 
   useEffect(() => {
     if (!winner || reportedWinner.current === winner) return;
@@ -56,7 +56,7 @@ export function TicTacToe({ players, settings, onWin, feedback }: GameProps) {
       <GameHeader title="Morpion" status={status} onReset={() => { reportedWinner.current = null; setBoard(Array(size * size).fill(null)); setTurn("X"); }} />
       <div className="ttt-board" style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}>
         {board.map((cell, index) => (
-          <button key={index} className="ttt-cell" onClick={() => play(index)} aria-label={`Case ${index + 1}`}>
+          <button key={index} className={`ttt-cell ${cell || ""}`} onClick={() => play(index)} aria-label={`Case ${index + 1}`}>
             {cell}
           </button>
         ))}

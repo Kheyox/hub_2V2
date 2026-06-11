@@ -16,7 +16,7 @@ export function ConnectFour({ players, onWin, feedback }: GameProps) {
   const winner = useMemo(() => connectFourWinner(board, rows, cols), [board]);
   const isDraw = !winner && board.every(Boolean);
   const playerName = (token: Player) => players[token === "R" ? 0 : 1].name;
-  const status = winner ? `${playerName(winner)} gagne` : isDraw ? "Grille pleine" : `A ${playerName(turn)} de jouer`;
+  const status = winner ? `${playerName(winner)} gagne` : isDraw ? "Grille pleine — match nul" : `À ${playerName(turn)} de jouer`;
 
   useEffect(() => {
     if (!winner || reportedWinner.current === winner) return;
@@ -49,7 +49,7 @@ export function ConnectFour({ players, onWin, feedback }: GameProps) {
       <div className={`connect-wrap ${turn === "R" ? "red-turn" : "yellow-turn"}`}>
         <div className="connect-tray" aria-hidden="true">
           <span className="next-token" />
-          <span>{winner ? "Partie terminee" : `${playerName(turn)} pose`}</span>
+          <span>{winner ? "Partie terminée" : `${playerName(turn)} pose un jeton`}</span>
         </div>
         <div className="connect-board">
           {Array.from({ length: cols }).map((_, col) => (

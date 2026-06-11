@@ -10,7 +10,7 @@ export function Matches({ players, settings, onWin, feedback }: GameProps) {
   const [player, setPlayer] = useState<Player>(0);
   const [winner, setWinner] = useState<Player | null>(null);
   const reportedWinner = useRef<Player | null>(null);
-  const status = winner !== null ? `${players[winner].name} gagne` : `${players[player].name} - ${matches} allumettes`;
+  const status = winner !== null ? `${players[winner].name} gagne` : `${players[player].name} joue · ${matches} allumette${matches > 1 ? "s" : ""}`;
 
   useEffect(() => {
     if (winner === null || reportedWinner.current === winner) return;

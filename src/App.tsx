@@ -70,7 +70,7 @@ const defaultTournament: TournamentState = {
   target: 3,
   score: [0, 0]
 };
-const gameFilters: GameFilter[] = ["Tous", "Rapide", "Strategie", "Hasard", "Deduction"];
+const gameFilters: GameFilter[] = ["Tous", "Rapide", "Stratégie", "Hasard", "Déduction"];
 
 const loadPlayers = (): PlayerProfiles => {
   try {
@@ -332,28 +332,21 @@ export function App() {
     const isFavorite = favorites.includes(game.id);
     return (
       <article className={`game-tile ${compact ? "compact" : ""}`} key={game.id} data-game={game.id} style={{ "--accent": game.accent } as React.CSSProperties}>
-        <button className="game-launch" onClick={() => openGame(game.id)} aria-label={`Jouer a ${game.title}`}>
-          <span className="tile-art" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
+        <button className="game-launch" onClick={() => openGame(game.id)} aria-label={`Jouer à ${game.title}`}>
           <span className="tile-icon">
             <Icon size={24} />
           </span>
           <span className="tile-copy">
             <strong>{game.title}</strong>
             <small>{game.subtitle}</small>
-            {!compact && <small className="tile-mood">{game.mood}</small>}
             {!compact && <em>{game.category}</em>}
           </span>
-          {!compact && <GamePreview gameId={game.id} />}
         </button>
         <div className="tile-actions">
           <button className={isFavorite ? "mini-action active" : "mini-action"} onClick={() => toggleFavorite(game.id)} aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}>
             <Star size={17} />
           </button>
-          <button className="mini-action" onClick={() => setRulesGame(game)} aria-label={`Regles de ${game.title}`}>
+          <button className="mini-action" onClick={() => setRulesGame(game)} aria-label={`Règles de ${game.title}`}>
             ?
           </button>
         </div>
@@ -375,7 +368,7 @@ export function App() {
             {onboarding.step === 0 && (
               <>
                 <p className="kicker">Premier lancement</p>
-                <h2>On prepare votre table de jeu</h2>
+                <h2>On prépare votre table de jeu</h2>
                 <label>Joueur 1<input value={players[0].name} maxLength={16} onChange={(event) => renamePlayer(0, event.target.value)} /></label>
                 <label>Joueur 2<input value={players[1].name} maxLength={16} onChange={(event) => renamePlayer(1, event.target.value)} /></label>
               </>
@@ -383,22 +376,22 @@ export function App() {
             {onboarding.step === 1 && (
               <>
                 <p className="kicker">Ambiance</p>
-                <h2>Choisis un theme</h2>
+                <h2>Choisis un thème</h2>
                 <div className="theme-choice">
                   {(["dark", "arcade", "wood", "neon"] as ThemeName[]).map((item) => (
-                    <button key={item} className={theme === item ? "active" : ""} onClick={() => setTheme(item)}>{item === "dark" ? "Sombre" : item === "wood" ? "Bois" : item === "neon" ? "Neon" : "Arcade"}</button>
+                    <button key={item} className={theme === item ? "active" : ""} onClick={() => setTheme(item)}>{item === "dark" ? "Sombre" : item === "wood" ? "Bois" : item === "neon" ? "Néon" : "Arcade"}</button>
                   ))}
                 </div>
               </>
             )}
             {onboarding.step === 2 && (
               <>
-                <p className="kicker">Comment ca marche</p>
-                <h2>Un telephone, deux prenoms, des revanches</h2>
+                <p className="kicker">Comment ça marche</p>
+                <h2>Un téléphone, deux joueurs, des revanches</h2>
                 <div className="onboarding-notes">
-                  <span>Les scores restent lies aux prenoms.</span>
-                  <span>Le bouton ? affiche les regles courtes de chaque jeu.</span>
-                  <span>Favoris, recents et tournois t'evitent de fouiller.</span>
+                  <span>Les scores restent liés aux prénoms.</span>
+                  <span>Le bouton ? affiche les règles courtes de chaque jeu.</span>
+                  <span>Favoris, récents et tournois sont à portée de pouce.</span>
                 </div>
               </>
             )}
@@ -422,10 +415,10 @@ export function App() {
 
         <div>
           <p className="kicker">Duelio</p>
-          <h1>{currentGame?.title || "Jeux 1v1 locaux"}</h1>
+          <h1>{currentGame?.title || "Jeux à deux"}</h1>
         </div>
 
-        <button className="icon-button" onClick={() => selectedGame && currentGame ? setRulesGame(currentGame) : window.location.reload()} aria-label={selectedGame ? "Regles du jeu" : "Rafraichir"}>
+        <button className="icon-button" onClick={() => selectedGame && currentGame ? setRulesGame(currentGame) : window.location.reload()} aria-label={selectedGame ? "Règles du jeu" : "Rafraîchir"}>
           {selectedGame ? <BookOpen size={20} /> : <RefreshCw size={20} />}
         </button>
       </header>
@@ -436,7 +429,7 @@ export function App() {
             <strong>Version {update.latestVersion} disponible</strong>
             <span>Tu es en {update.currentVersion}. Ouvre l'APK, puis Android te proposera l'installation.</span>
           </div>
-          <button onClick={() => window.open(update.apkUrl || update.releaseUrl, "_blank")} aria-label="Telecharger la mise a jour">
+          <button onClick={() => window.open(update.apkUrl || update.releaseUrl, "_blank")} aria-label="Télécharger la mise à jour">
             <Download size={18} />
             Installer
           </button>
@@ -447,7 +440,7 @@ export function App() {
         <section className="update-banner warning">
           <ShieldAlert size={20} />
           <div>
-            <strong>Mises a jour non verifiables</strong>
+            <strong>Mises à jour non vérifiables</strong>
             <span>{update.reason}</span>
           </div>
           <button onClick={() => window.open(update.releaseUrl, "_blank")} aria-label="Ouvrir les releases">
@@ -457,38 +450,38 @@ export function App() {
       )}
 
       {updatePanelOpen && update && (
-        <section className="update-modal" role="dialog" aria-modal="true" aria-label="Mise a jour">
+        <section className="update-modal" role="dialog" aria-modal="true" aria-label="Mise à jour">
           <div className="update-card">
             <button className="modal-close" onClick={() => setUpdatePanelOpen(false)} aria-label="Fermer">
               <X size={18} />
             </button>
-            <p className="kicker">Mise a jour</p>
+            <p className="kicker">Mise à jour</p>
             {update.status === "available" && (
               <>
                 <h2>Version {update.latestVersion} disponible</h2>
-                <p>Version installee: {update.currentVersion}. Le bouton ouvre l'APK de la release; Android affichera ensuite l'installation.</p>
+                <p>Version installée : {update.currentVersion}. Le bouton ouvre l'APK de la release ; Android affichera ensuite l'installation.</p>
                 <button className="primary-action" onClick={() => window.open(update.apkUrl || update.releaseUrl, "_blank")}>
                   <Download size={18} />
-                  Installer la mise a jour
+                  Installer la mise à jour
                 </button>
               </>
             )}
             {update.status === "current" && (
               <>
-                <h2>Duelio est a jour</h2>
-                <p>Version installee: {update.currentVersion}. Derniere release: {update.latestVersion}.</p>
+                <h2>Duelio est à jour</h2>
+                <p>Version installée : {update.currentVersion}. Dernière release : {update.latestVersion}.</p>
               </>
             )}
             {update.status === "blocked" && (
               <>
-                <h2>Verification bloquee</h2>
+                <h2>Vérification bloquée</h2>
                 <p>{update.reason}</p>
                 <button className="primary-action" onClick={() => window.open(update.releaseUrl, "_blank")}>Ouvrir les releases</button>
               </>
             )}
             {update.status === "offline" && (
               <>
-                <h2>Verification impossible</h2>
+                <h2>Vérification impossible</h2>
                 <p>{update.reason}</p>
               </>
             )}
@@ -497,12 +490,12 @@ export function App() {
       )}
 
       {rulesGame && (
-        <section className="update-modal" role="dialog" aria-modal="true" aria-label={`Regles ${rulesGame.title}`}>
+        <section className="update-modal" role="dialog" aria-modal="true" aria-label={`Règles ${rulesGame.title}`}>
           <div className="update-card rules-card">
             <button className="modal-close" onClick={() => setRulesGame(null)} aria-label="Fermer">
               <X size={18} />
             </button>
-            <p className="kicker">Regles</p>
+            <p className="kicker">Règles</p>
             <h2>{rulesGame.title}</h2>
             <div className="rules-block">
               <strong>Objectif</strong>
@@ -528,13 +521,12 @@ export function App() {
               </div>
               <div>
                 <p className="kicker">Fin de partie</p>
-                <h2>{lastResult.winnerName} gagne</h2>
-                <span>{lastResult.gameTitle} - {lastResult.score}</span>
+                <h2>{lastResult.winnerName} gagne !</h2>
+                <span>{lastResult.gameTitle} · {lastResult.score}</span>
               </div>
               <div className="result-summary">
-                <span>Score partie: {lastResult.score}</span>
-                <span>Global: {players[0].name} {players[0].wins} - {players[1].wins} {players[1].name}</span>
-                {tournament.enabled && <span>Tournoi: {players[0].name} {tournament.score[0]} - {tournament.score[1]} {players[1].name}{tournamentWinner !== null ? `, gagne par ${players[tournamentWinner].name}` : `, objectif ${tournamentLimit}`}</span>}
+                <span>Score global : {players[0].name} {players[0].wins} - {players[1].wins} {players[1].name}</span>
+                {tournament.enabled && <span>Tournoi : {players[0].name} {tournament.score[0]} - {tournament.score[1]} {players[1].name}{tournamentWinner !== null ? ` — remporté par ${players[tournamentWinner].name} !` : ` (objectif ${tournamentLimit})`}</span>}
               </div>
               <div className="result-actions">
                 <button className="primary-action" onClick={rematch}>Revanche</button>
@@ -548,8 +540,7 @@ export function App() {
         <section className="hub">
           <div className="hero-panel">
             <div>
-              <p className="kicker">Duelio</p>
-              <h2>Un telephone. Deux joueurs. Une revanche.</h2>
+              <h2>Un téléphone.<br />Deux joueurs.</h2>
             </div>
             <div className="version-pill">v{APP_VERSION}</div>
           </div>
@@ -573,25 +564,25 @@ export function App() {
                 ))}
               </section>
 
-              <section className="resume-panel">
-                <div>
-                  <p className="kicker">Reprendre</p>
-                  <h3>{lastPlayedGame ? lastPlayedGame.title : "Choisis un jeu"}</h3>
-                  <span>{stats.history[0] ? `Derniere victoire: ${stats.history[0].winnerName}` : "Les parties se jouent directement a deux sur ce telephone."}</span>
-                </div>
-                {lastPlayedGame && (
+              {lastPlayedGame && (
+                <section className="resume-panel">
+                  <div>
+                    <p className="kicker">Reprendre</p>
+                    <h3>{lastPlayedGame.title}</h3>
+                    <span>{stats.history[0] ? `Dernière victoire : ${stats.history[0].winnerName}` : "Prêts pour la première manche ?"}</span>
+                  </div>
                   <button className="primary-action" onClick={() => openGame(lastPlayedGame.id)}>
                     <Play size={18} />
-                    Reprendre
+                    Jouer
                   </button>
-                )}
-              </section>
+                </section>
+              )}
 
               <section className="tournament-panel">
                 <div>
                   <p className="kicker">Tournoi</p>
-                  <h3>{tournament.enabled ? `${players[0].name} ${tournament.score[0]} - ${tournament.score[1]} ${players[1].name}` : "Serie de manches"}</h3>
-                  <span>{tournament.enabled ? `Premier a ${tournamentLimit} victoire${tournamentLimit > 1 ? "s" : ""}` : "Choisis 3, 5 ou 7 manches, Duelio garde le score global."}</span>
+                  <h3>{tournament.enabled ? `${players[0].name} ${tournament.score[0]} - ${tournament.score[1]} ${players[1].name}` : "Série de manches"}</h3>
+                  <span>{tournament.enabled ? `Premier à ${tournamentLimit} victoire${tournamentLimit > 1 ? "s" : ""}` : "Lance un premier à 3, 5 ou 7 manches : Duelio garde le score."}</span>
                 </div>
                 <div className="tournament-actions">
                   {[3, 5, 7].map((target) => (
@@ -611,7 +602,7 @@ export function App() {
                   )}
                   {recentGameDefs.length > 0 && (
                     <div>
-                      <p className="kicker">Recents</p>
+                      <p className="kicker">Récents</p>
                       <div className="quick-row">{recentGameDefs.map((game) => renderGameTile(game, true))}</div>
                     </div>
                   )}
@@ -643,25 +634,25 @@ export function App() {
                   <span>Joueur {index + 1}</span>
                   <input value={player.name} maxLength={16} onChange={(event) => renamePlayer(index as PlayerIndex, event.target.value)} />
                   <strong>{player.wins} victoire{player.wins > 1 ? "s" : ""}</strong>
-                  <small>Meilleur jeu: {bestGameFor(index as PlayerIndex)}</small>
+                  <small>Meilleur jeu : {bestGameFor(index as PlayerIndex)}</small>
                 </label>
               ))}
-              <button className="reset-score" onClick={resetWins}>Remettre les victoires a zero</button>
+              <button className="reset-score" onClick={resetWins}>Remettre les scores à zéro</button>
             </section>
           )}
 
           {homeTab === "stats" && (
             <section className="history-panel clean-panel">
               <div>
-                <p className="kicker">Serie actuelle</p>
-                <strong>{stats.currentStreak.player === null ? "Aucune serie" : `${players[stats.currentStreak.player].name}: ${stats.currentStreak.count} victoire${stats.currentStreak.count > 1 ? "s" : ""} de suite`}</strong>
+                <p className="kicker">Série en cours</p>
+                <strong>{stats.currentStreak.player === null ? "Aucune série" : `${players[stats.currentStreak.player].name} : ${stats.currentStreak.count} victoire${stats.currentStreak.count > 1 ? "s" : ""} de suite`}</strong>
               </div>
-              {stats.history.length === 0 && <p className="empty-state">Aucune partie terminee pour l'instant.</p>}
+              {stats.history.length === 0 && <p className="empty-state">Aucune partie terminée pour l'instant.</p>}
               {stats.history.slice(0, 10).map((entry) => (
                 <div key={entry.id} className="history-row">
                   <span>{entry.gameTitle}</span>
                   <strong>{entry.winnerName}</strong>
-                  <small>{new Date(entry.date).toLocaleDateString("fr-FR")} - {entry.score}</small>
+                  <small>{new Date(entry.date).toLocaleDateString("fr-FR")} · {entry.score}</small>
                 </div>
               ))}
             </section>
@@ -671,35 +662,35 @@ export function App() {
             <>
               <section className="settings-panel clean-panel">
                 <label>
-                  Theme
+                  Thème
                   <select value={theme} onChange={(event) => setTheme(event.target.value as ThemeName)}>
                     <option value="dark">Sombre</option>
                     <option value="arcade">Arcade</option>
-                    <option value="wood">Bois/table</option>
-                    <option value="neon">Neon</option>
+                    <option value="wood">Bois / table</option>
+                    <option value="neon">Néon</option>
                   </select>
                 </label>
                 <label>
-                  Allumettes
+                  Allumettes au départ
                   <input type="number" min="9" max="41" step="2" value={settings.matchesStart} onChange={(event) => setSettings({ ...settings, matchesStart: Number(event.target.value) })} />
                 </label>
                 <label>
-                  Morpion
+                  Grille du morpion
                   <select value={settings.ticTacToeSize} onChange={(event) => setSettings({ ...settings, ticTacToeSize: Number(event.target.value) as 3 | 4 })}>
                     <option value={3}>3x3</option>
                     <option value={4}>4x4</option>
                   </select>
                 </label>
                 <label>
-                  Pendu erreurs
+                  Erreurs au pendu
                   <input type="number" min="4" max="10" value={settings.hangmanErrors} onChange={(event) => setSettings({ ...settings, hangmanErrors: Number(event.target.value) })} />
                 </label>
-                <button className={settings.sound ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, sound: !settings.sound })}>Sons</button>
-                <button className={settings.vibration ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, vibration: !settings.vibration })}>Vibrations</button>
+                <button className={settings.sound ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, sound: !settings.sound })}>Sons {settings.sound ? "activés" : "coupés"}</button>
+                <button className={settings.vibration ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, vibration: !settings.vibration })}>Vibrations {settings.vibration ? "activées" : "coupées"}</button>
               </section>
               <button className="update-check" onClick={refreshUpdate}>
                 <RefreshCw size={18} />
-                Verifier les mises a jour
+                Vérifier les mises à jour
               </button>
             </>
           )}
@@ -723,14 +714,3 @@ export function GameHeader({ title, status, onReset }: { title: string; status: 
   );
 }
 
-function GamePreview({ gameId }: { gameId: GameId }) {
-  if (gameId === "connect4") return <span className="game-preview preview-connect"><i /><i /><i /><i /><i /><i /><i /><i /></span>;
-  if (gameId === "yatzy") return <span className="game-preview preview-dice"><i /><i /><i /></span>;
-  if (gameId === "memory") return <span className="game-preview preview-memory"><i /><i /><i /><i /></span>;
-  if (gameId === "battleship") return <span className="game-preview preview-battle"><i /><i /><i /><i /><i /><i /></span>;
-  if (gameId === "checkers") return <span className="game-preview preview-checkers"><i /><i /><i /><i /></span>;
-  if (gameId === "dominoes") return <span className="game-preview preview-domino"><i /><i /><i /></span>;
-  if (gameId === "mancala") return <span className="game-preview preview-mancala"><i /><i /><i /><i /><i /><i /></span>;
-  if (gameId === "quarto") return <span className="game-preview preview-quarto"><i /><i /><i /><i /></span>;
-  return <span className="game-preview preview-grid"><i /><i /><i /><i /></span>;
-}
