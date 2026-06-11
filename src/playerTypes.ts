@@ -1,3 +1,5 @@
+import type { SfxKind } from "./sound";
+
 export type PlayerIndex = 0 | 1;
 
 export type PlayerProfiles = [
@@ -10,6 +12,7 @@ export type GameSettings = {
   ticTacToeSize: 3 | 4;
   hangmanErrors: number;
   sound: boolean;
+  music: boolean;
   vibration: boolean;
 };
 
@@ -17,5 +20,5 @@ export type GameProps = {
   players: PlayerProfiles;
   settings: GameSettings;
   onWin: (winner: PlayerIndex, score?: string) => void;
-  feedback: (kind: "win" | "tap" | "error") => void;
+  feedback: (kind: SfxKind) => void;
 };

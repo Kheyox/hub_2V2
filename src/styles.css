@@ -13,11 +13,11 @@
 }
 
 .app-shell {
-  --bg: #0e1316;
-  --surface: #161d21;
-  --surface-2: #1e272c;
-  --inset: #0b1013;
-  --line: rgba(237, 243, 241, 0.09);
+  --bg: #10171b;
+  --surface: #1a2329;
+  --surface-2: #243038;
+  --inset: #0d1316;
+  --line: rgba(237, 243, 241, 0.11);
   --text: #eef4f2;
   --muted: #94a6a2;
   --soft: #c8d4d1;
@@ -59,7 +59,11 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #0e1316;
+  background:
+    radial-gradient(620px 340px at 12% -4%, rgba(57, 198, 163, 0.16), transparent 70%),
+    radial-gradient(540px 320px at 95% 8%, rgba(127, 183, 255, 0.13), transparent 70%),
+    radial-gradient(480px 300px at 50% 104%, rgba(216, 156, 255, 0.1), transparent 70%),
+    #10171b;
 }
 
 body:has(.theme-arcade) {
@@ -132,14 +136,16 @@ button {
   min-height: 46px;
   padding: 0 16px;
   border-radius: var(--radius-control);
-  background: var(--text);
-  color: var(--bg);
+  background: linear-gradient(120deg, var(--brand), color-mix(in srgb, var(--brand) 70%, var(--blue)));
+  color: #10171b;
   font-weight: 800;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--brand) 24%, transparent);
 }
 
 .secondary-action {
   background: var(--surface-2);
   color: var(--text);
+  box-shadow: none;
 }
 
 .primary-action:disabled {
@@ -475,6 +481,11 @@ button {
 .hero-panel h2 {
   font-size: clamp(1.7rem, 8.5vw, 2.4rem);
   line-height: 1.04;
+  background: linear-gradient(100deg, #4fe0bb 0%, #7fb7ff 48%, #d89cff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .version-pill {
@@ -517,8 +528,8 @@ button {
 }
 
 .home-tabs button.active {
-  background: var(--text);
-  color: var(--bg);
+  background: linear-gradient(120deg, var(--brand), color-mix(in srgb, var(--brand) 65%, var(--blue)));
+  color: #10171b;
 }
 
 /* Versus strip */
@@ -537,14 +548,14 @@ button {
   grid-row: 1;
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 999px;
-  background: var(--text);
-  color: var(--bg);
-  font-size: 0.8rem;
+  background: linear-gradient(145deg, var(--gold), var(--coral));
+  color: #10171b;
+  font-size: 0.82rem;
   font-weight: 900;
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 18px rgba(239, 122, 89, 0.3);
 }
 
 .versus-strip div {
@@ -559,11 +570,19 @@ button {
 
 .versus-strip div:first-child {
   grid-column: 1;
+  border-color: color-mix(in srgb, var(--blue) 38%, var(--line));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--blue) 14%, transparent), transparent 60%),
+    var(--surface);
 }
 
 .versus-strip div:last-child {
   grid-column: 3;
   text-align: right;
+  border-color: color-mix(in srgb, var(--gold) 38%, var(--line));
+  background:
+    linear-gradient(225deg, color-mix(in srgb, var(--gold) 14%, transparent), transparent 60%),
+    var(--surface);
 }
 
 .versus-strip .player-avatar {
@@ -699,8 +718,8 @@ button {
 
 .filter-row button.active {
   border-color: transparent;
-  background: var(--text);
-  color: var(--bg);
+  background: linear-gradient(120deg, var(--brand), color-mix(in srgb, var(--brand) 65%, var(--blue)));
+  color: #10171b;
 }
 
 /* ====== Game tiles ====== */
@@ -713,9 +732,11 @@ button {
 
 .game-tile {
   position: relative;
-  border: 1px solid var(--line);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
   border-radius: var(--radius-card);
-  background: var(--surface);
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--accent) 17%, transparent), transparent 55%),
+    var(--surface);
   overflow: hidden;
 }
 
@@ -748,8 +769,9 @@ button {
   width: 52px;
   height: 52px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
-  color: var(--accent);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 92%, #ffffff), color-mix(in srgb, var(--accent) 78%, #10171b));
+  color: #10171b;
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .game-tile.compact .tile-icon {
@@ -926,8 +948,8 @@ button {
 }
 
 .settings-panel button.toggle-on {
-  background: var(--text);
-  color: var(--bg);
+  background: linear-gradient(120deg, var(--brand), color-mix(in srgb, var(--brand) 65%, var(--blue)));
+  color: #10171b;
 }
 
 .update-check {

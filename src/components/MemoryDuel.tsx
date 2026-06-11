@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { GameHeader } from "../App";
 import type { GameProps, PlayerIndex } from "../playerTypes";
 
-const symbols = ["A", "B", "C", "D", "E", "F", "G", "H"];
+const symbols = ["🦊", "🐙", "🌟", "🍒", "⚡", "🎈", "🐳", "🍀"];
 const makeDeck = () => [...symbols, ...symbols].map((symbol, id) => ({ symbol, id })).sort(() => Math.random() - 0.5);
 
-export function MemoryDuel({ players, onWin }: GameProps) {
+export function MemoryDuel({ players, onWin, feedback }: GameProps) {
   const [deck, setDeck] = useState(makeDeck);
   const [open, setOpen] = useState<number[]>([]);
   const [found, setFound] = useState<number[]>([]);
@@ -24,6 +24,7 @@ export function MemoryDuel({ players, onWin }: GameProps) {
 
   const flip = (index: number) => {
     if (open.length === 2 || open.includes(index) || found.includes(index)) return;
+    feedback("flip");
     const next = [...open, index];
     setOpen(next);
     if (next.length === 2) {
@@ -31,6 +32,7 @@ export function MemoryDuel({ players, onWin }: GameProps) {
         if (deck[next[0]].symbol === deck[next[1]].symbol) {
           setFound((current) => [...current, ...next]);
           setScore((current) => turn === 0 ? [current[0] + 1, current[1]] : [current[0], current[1] + 1]);
+          feedback("tap");
         } else {
           setTurn(turn === 0 ? 1 : 0);
         }

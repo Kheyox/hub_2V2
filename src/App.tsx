@@ -15,6 +15,7 @@ import { TicTacToe } from "./components/TicTacToe";
 import { Yatzy } from "./components/Yatzy";
 import { games, type GameDefinition, type GameId } from "./games";
 import type { GameProps, GameSettings, PlayerIndex, PlayerProfiles } from "./playerTypes";
+import { configureAudio, sfx, type SfxKind } from "./sound";
 import { checkForUpdate, type UpdateInfo } from "./updateService";
 import { APP_VERSION } from "./version";
 
@@ -56,6 +57,7 @@ const defaultSettings: GameSettings = {
   ticTacToeSize: 3,
   hangmanErrors: 6,
   sound: true,
+  music: true,
   vibration: true
 };
 
@@ -151,6 +153,10 @@ export function App() {
   }, [settings]);
 
   useEffect(() => {
+    configureAudio({ sound: settings.sound, music: settings.music });
+  }, [settings.sound, settings.music]);
+
+  useEffect(() => {
     window.localStorage.setItem("duelio.theme", JSON.stringify(theme));
   }, [theme]);
 
@@ -222,22 +228,11 @@ export function App() {
     });
   };
 
-  const playFeedback = (kind: "win" | "tap" | "error") => {
+  const playFeedback = (kind: SfxKind) => {
     if (settings.vibration && navigator.vibrate) {
-      navigator.vibrate(kind === "win" ? [30, 40, 60] : kind === "error" ? 40 : 15);
+      navigator.vibrate(kind === "win" ? [30, 40, 60] : kind === "error" ? 40 : kind === "dice" ? [10, 20, 10] : 15);
     }
-    if (!settings.sound) return;
-    const AudioContextType = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioContextType) return;
-    const ctx = new AudioContextType();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.frequency.value = kind === "win" ? 740 : kind === "error" ? 180 : 420;
-    gain.gain.value = 0.045;
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + (kind === "win" ? 0.18 : 0.08));
+    sfx(kind);
   };
 
   const recordWin = (winner: PlayerIndex, score = "Victoire") => {
@@ -686,6 +681,7 @@ export function App() {
                   <input type="number" min="4" max="10" value={settings.hangmanErrors} onChange={(event) => setSettings({ ...settings, hangmanErrors: Number(event.target.value) })} />
                 </label>
                 <button className={settings.sound ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, sound: !settings.sound })}>Sons {settings.sound ? "activés" : "coupés"}</button>
+                <button className={settings.music ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, music: !settings.music })}>Musique {settings.music ? "activée" : "coupée"}</button>
                 <button className={settings.vibration ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, vibration: !settings.vibration })}>Vibrations {settings.vibration ? "activées" : "coupées"}</button>
               </section>
               <button className="update-check" onClick={refreshUpdate}>

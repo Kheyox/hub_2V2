@@ -57,7 +57,7 @@ export function Yatzy({ players, onWin, feedback }: GameProps) {
       feedback("error");
       return;
     }
-    feedback("tap");
+    feedback("dice");
     setRolling(true);
     window.setTimeout(() => {
       setDice((current) => rollDice(held, current));

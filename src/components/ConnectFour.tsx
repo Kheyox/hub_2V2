@@ -36,7 +36,7 @@ export function ConnectFour({ players, onWin, feedback }: GameProps) {
         next[index] = turn;
         setBoard(next);
         setTurn(turn === "R" ? "Y" : "R");
-        feedback("tap");
+        feedback("drop");
         return;
       }
     }
