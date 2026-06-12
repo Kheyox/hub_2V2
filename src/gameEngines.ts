@@ -65,20 +65,20 @@ export const yatzyScoreFor = (category: YatzyCategory, dice: number[]) => {
   const upperTarget = targetByCategory[category];
   if (upperTarget) return dice.filter((value) => value === upperTarget).reduce((total, value) => total + value, 0);
   if (category === "onePair") {
-    const pair = [...values].reverse().find((value) => counts[value] >= 2);
-    return pair ? pair * 2 : 0;
+    const hasPair = values.some((value) => counts[value] >= 2);
+    return hasPair ? sum : 0;
   }
   if (category === "twoPairs") {
-    const pairs = [...values].reverse().filter((value) => counts[value] >= 2).slice(0, 2);
-    return pairs.length === 2 ? pairs.reduce((total, value) => total + value * 2, 0) : 0;
+    const distinctPairs = values.filter((value) => counts[value] >= 2).length;
+    return distinctPairs >= 2 ? sum : 0;
   }
   if (category === "threeKind") {
-    const value = [...values].reverse().find((item) => counts[item] >= 3);
-    return value ? value * 3 : 0;
+    const hasThree = values.some((value) => counts[value] >= 3);
+    return hasThree ? sum : 0;
   }
   if (category === "fourKind") {
-    const value = [...values].reverse().find((item) => counts[item] >= 4);
-    return value ? value * 4 : 0;
+    const hasFour = values.some((value) => counts[value] >= 4);
+    return hasFour ? sum : 0;
   }
   if (category === "smallStraight") {
     const unique = new Set(dice);

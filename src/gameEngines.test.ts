@@ -31,11 +31,15 @@ describe("yatzyScoreFor", () => {
     expect(yatzyScoreFor("chance", [1, 2, 3, 4, 5])).toBe(15);
   });
 
-  it("score les combinaisons classiques", () => {
-    expect(yatzyScoreFor("onePair", [6, 6, 5, 5, 1])).toBe(12);
-    expect(yatzyScoreFor("twoPairs", [6, 6, 5, 5, 1])).toBe(22);
-    expect(yatzyScoreFor("threeKind", [4, 4, 4, 2, 1])).toBe(12);
-    expect(yatzyScoreFor("fourKind", [3, 3, 3, 3, 6])).toBe(12);
+  it("score les combinaisons en sommant tous les des", () => {
+    expect(yatzyScoreFor("onePair", [6, 6, 5, 5, 1])).toBe(23);
+    expect(yatzyScoreFor("onePair", [1, 2, 3, 4, 6])).toBe(0);
+    expect(yatzyScoreFor("twoPairs", [6, 6, 5, 5, 1])).toBe(23);
+    expect(yatzyScoreFor("twoPairs", [6, 6, 5, 4, 1])).toBe(0);
+    expect(yatzyScoreFor("threeKind", [4, 4, 4, 3, 3])).toBe(18);
+    expect(yatzyScoreFor("threeKind", [4, 4, 2, 3, 1])).toBe(0);
+    expect(yatzyScoreFor("fourKind", [3, 3, 3, 3, 6])).toBe(18);
+    expect(yatzyScoreFor("fourKind", [3, 3, 3, 2, 6])).toBe(0);
     expect(yatzyScoreFor("fullHouse", [2, 2, 5, 5, 5])).toBe(25);
   });
 
