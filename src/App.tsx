@@ -23,7 +23,7 @@ import { Yatzy } from "./components/Yatzy";
 import { games, type GameDefinition, type GameId } from "./games";
 import type { GameProps, GameSettings, PlayerIndex, PlayerProfiles } from "./playerTypes";
 import { configureAudio, sfx, type MusicStyle, type SfxKind } from "./sound";
-import { checkForUpdate, type UpdateInfo } from "./updateService";
+import { checkForUpdate, downloadAndInstall, isNativeApp, type DownloadState, type UpdateInfo } from "./updateService";
 import { APP_VERSION } from "./version";
 
 const AVATARS = ["😀", "😎", "🦊", "🐯", "🐸", "🐼", "🦄", "🐲", "🤖", "👾", "🦁", "🐙", "🌟", "🔥", "⚡", "🍀"];
@@ -168,6 +168,7 @@ export function App() {
   const [onboarding, setOnboarding] = useState<OnboardingState>(() => loadJson("duelio.onboarding", { done: false, step: 0 as const }));
   const [update, setUpdate] = useState<UpdateInfo | null>(null);
   const [updatePanelOpen, setUpdatePanelOpen] = useState(false);
+  const [download, setDownload] = useState<DownloadState | null>(null);
   const currentGame = useMemo(() => games.find((game) => game.id === selectedGame), [selectedGame]);
   const lastPlayedGame = useMemo(() => games.find((game) => game.id === lastPlayed), [lastPlayed]);
   const favoriteGames = useMemo(() => favorites.map((id) => games.find((game) => game.id === id)).filter(Boolean) as GameDefinition[], [favorites]);
@@ -265,10 +266,24 @@ export function App() {
     return () => remove?.();
   }, [selectedGame, updatePanelOpen, rulesGame]);
 
+  const startInstall = (info: UpdateInfo) => {
+    if (info.status !== "available") return;
+    if (!info.apkUrl) {
+      window.open(info.releaseUrl, "_blank");
+      return;
+    }
+    downloadAndInstall(info.apkUrl, setDownload);
+  };
+
   useEffect(() => {
     checkForUpdate().then((info) => {
       setUpdate(info);
       setUpdatePanelOpen(info.status === "available");
+      // Sur Android : téléchargement automatique en arrière-plan dès le lancement,
+      // puis ouverture de l'installateur (Android demande la confirmation finale).
+      if (info.status === "available" && info.apkUrl && isNativeApp()) {
+        downloadAndInstall(info.apkUrl, setDownload);
+      }
     });
   }, []);
 
@@ -550,13 +565,13 @@ export function App() {
         </button>
       </header>
 
-      {update?.status === "available" && (
+      {update?.status === "available" && !updatePanelOpen && (
         <section className="update-banner">
           <div>
             <strong>Version {update.latestVersion} disponible</strong>
-            <span>Tu es en {update.currentVersion}. Ouvre l'APK, puis Android te proposera l'installation.</span>
+            <span>{download?.step === "downloading" ? `Téléchargement... ${download.progress}%` : "Tu es en " + update.currentVersion + ". L'installation se lance en un geste."}</span>
           </div>
-          <button onClick={() => window.open(update.apkUrl || update.releaseUrl, "_blank")} aria-label="Télécharger la mise à jour">
+          <button onClick={() => { setUpdatePanelOpen(true); if (!download) startInstall(update); }} aria-label="Installer la mise à jour">
             <Download size={18} />
             Installer
           </button>
@@ -586,11 +601,28 @@ export function App() {
             {update.status === "available" && (
               <>
                 <h2>Version {update.latestVersion} disponible</h2>
-                <p>Version installée : {update.currentVersion}. Le bouton ouvre l'APK de la release ; Android affichera ensuite l'installation.</p>
-                <button className="primary-action" onClick={() => window.open(update.apkUrl || update.releaseUrl, "_blank")}>
-                  <Download size={18} />
-                  Installer la mise à jour
-                </button>
+                {download?.step === "downloading" && (
+                  <>
+                    <p>Téléchargement en cours... {download.progress}%</p>
+                    <div className="download-bar" aria-hidden="true">
+                      <i style={{ width: `${download.progress}%` }} />
+                    </div>
+                  </>
+                )}
+                {download?.step === "installing" && (
+                  <p>Téléchargement terminé ! Android va te proposer l'installation.</p>
+                )}
+                {download?.step === "error" && <p>{download.message}</p>}
+                {!download && <p>Version installée : {update.currentVersion}. La mise à jour se télécharge puis Android propose l'installation.</p>}
+                {download?.step !== "downloading" && (
+                  <button className="primary-action" onClick={() => startInstall(update)}>
+                    <Download size={18} />
+                    {download?.step === "installing" ? "Relancer l'installation" : download?.step === "error" ? "Réessayer" : "Installer la mise à jour"}
+                  </button>
+                )}
+                {download?.step === "error" && (
+                  <button className="secondary-action" onClick={() => window.open(update.apkUrl || update.releaseUrl, "_blank")}>Télécharger via le navigateur</button>
+                )}
               </>
             )}
             {update.status === "current" && (

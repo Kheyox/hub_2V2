@@ -1,7 +1,7 @@
 {
   "name": "hub-2v2",
   "private": true,
-  "version": "0.1.30",
+  "version": "0.1.31",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -12,10 +12,12 @@
     "android": "npm run cap:sync && cap open android"
   },
   "dependencies": {
+    "@capacitor-community/file-opener": "^7.0.1",
     "@capacitor/android": "^7.2.0",
     "@capacitor/app": "^7.1.2",
     "@capacitor/cli": "^7.2.0",
     "@capacitor/core": "^7.2.0",
+    "@capacitor/filesystem": "^7.1.8",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

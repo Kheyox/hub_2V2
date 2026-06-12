@@ -1,5 +1,60 @@
+import { Capacitor } from "@capacitor/core";
 import { APP_VERSION, GITHUB_REPO, UPDATE_MANIFEST_URL } from "./version";
 import { compareVersions, normalizeVersion } from "./gameEngines";
+
+export const isNativeApp = () => Capacitor.isNativePlatform();
+
+export type DownloadState =
+  | { step: "downloading"; progress: number }
+  | { step: "installing" }
+  | { step: "error"; message: string };
+
+// Télécharge l'APK en arrière-plan puis lance l'installateur Android.
+// (Android affiche toujours sa confirmation « Installer » finale.)
+export const downloadAndInstall = async (
+  apkUrl: string,
+  onState: (state: DownloadState) => void
+): Promise<boolean> => {
+  if (!Capacitor.isNativePlatform()) {
+    window.open(apkUrl, "_blank");
+    return false;
+  }
+
+  try {
+    const { Filesystem, Directory } = await import("@capacitor/filesystem");
+    const { FileOpener } = await import("@capacitor-community/file-opener");
+
+    onState({ step: "downloading", progress: 0 });
+    const listener = await Filesystem.addListener("progress", (event) => {
+      if (event.contentLength > 0) {
+        onState({ step: "downloading", progress: Math.min(99, Math.round((event.bytes / event.contentLength) * 100)) });
+      }
+    });
+
+    const result = await Filesystem.downloadFile({
+      url: apkUrl,
+      path: "Versus.apk",
+      directory: Directory.Cache,
+      progress: true
+    });
+    await listener.remove();
+
+    if (!result.path) {
+      onState({ step: "error", message: "Téléchargement incomplet, réessaie." });
+      return false;
+    }
+
+    onState({ step: "installing" });
+    await FileOpener.open({
+      filePath: result.path,
+      contentType: "application/vnd.android.package-archive"
+    });
+    return true;
+  } catch {
+    onState({ step: "error", message: "Téléchargement impossible. Le bouton ci-dessous ouvre la page de la release." });
+    return false;
+  }
+};
 
 export type UpdateInfo =
   | {
