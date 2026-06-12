@@ -31,11 +31,7 @@ describe("yatzyScoreFor", () => {
     expect(yatzyScoreFor("chance", [1, 2, 3, 4, 5])).toBe(15);
   });
 
-  it("score les combinaisons en sommant tous les des", () => {
-    expect(yatzyScoreFor("onePair", [6, 6, 5, 5, 1])).toBe(23);
-    expect(yatzyScoreFor("onePair", [1, 2, 3, 4, 6])).toBe(0);
-    expect(yatzyScoreFor("twoPairs", [6, 6, 5, 5, 1])).toBe(23);
-    expect(yatzyScoreFor("twoPairs", [6, 6, 5, 4, 1])).toBe(0);
+  it("score brelan et carre en sommant tous les des", () => {
     expect(yatzyScoreFor("threeKind", [4, 4, 4, 3, 3])).toBe(18);
     expect(yatzyScoreFor("threeKind", [4, 4, 2, 3, 1])).toBe(0);
     expect(yatzyScoreFor("fourKind", [3, 3, 3, 3, 6])).toBe(18);
@@ -61,8 +57,8 @@ describe("yatzyScoreFor", () => {
     sheet.fours = 12;
     sheet.fives = 15;
     sheet.sixes = 18;
-    expect(yatzyBonusFor(sheet)).toBe(50);
-    expect(yatzyTotalFor(sheet)).toBe(113);
+    expect(yatzyBonusFor(sheet)).toBe(35);
+    expect(yatzyTotalFor(sheet)).toBe(98);
   });
 });
 

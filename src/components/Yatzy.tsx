@@ -16,8 +16,6 @@ const upperCategories: Array<{ id: Category; label: string; icon: string }> = [
 ];
 
 const lowerCategories: Array<{ id: Category; label: string; icon: string }> = [
-  { id: "onePair", label: "Paire", icon: "2×" },
-  { id: "twoPairs", label: "2 paires", icon: "2+2" },
   { id: "threeKind", label: "Brelan", icon: "3×" },
   { id: "fourKind", label: "Carré", icon: "4×" },
   { id: "smallStraight", label: "P. suite", icon: "↗4" },

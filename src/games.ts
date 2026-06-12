@@ -88,10 +88,10 @@ export const games: GameDefinition[] = [
       objective: "Marquer plus de points que l'adversaire en remplissant toute la feuille de score.",
       turn: "Lance les 5 dés, garde ceux qui t'intéressent, relance jusqu'à 2 fois, puis choisis une catégorie libre.",
       tips: [
-        "Paire, double paire, brelan et carré comptent la somme des 5 dés.",
-        "Ex : brelan 4-4-4-3-3 = 18 (12 + 3 + 3).",
+        "Brelan et carré comptent la somme des 5 dés (ex : 4-4-4-3-3 = 18).",
         "Petite suite = 4 dés qui se suivent (30 pts), grande suite = 5 dés (40 pts).",
-        "Full = 25 pts, Yatzy = 50 pts, bonus de 50 dès 63 points en haut."
+        "Full = 25 pts, Yatzy (5 identiques) = 50 pts.",
+        "Bonus de 35 dès 63 points dans le haut de feuille."
       ]
     }
   },

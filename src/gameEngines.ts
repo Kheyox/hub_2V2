@@ -6,8 +6,6 @@ export type YatzyCategory =
   | "fours"
   | "fives"
   | "sixes"
-  | "onePair"
-  | "twoPairs"
   | "threeKind"
   | "fourKind"
   | "smallStraight"
@@ -64,14 +62,6 @@ export const yatzyScoreFor = (category: YatzyCategory, dice: number[]) => {
   };
   const upperTarget = targetByCategory[category];
   if (upperTarget) return dice.filter((value) => value === upperTarget).reduce((total, value) => total + value, 0);
-  if (category === "onePair") {
-    const hasPair = values.some((value) => counts[value] >= 2);
-    return hasPair ? sum : 0;
-  }
-  if (category === "twoPairs") {
-    const distinctPairs = values.filter((value) => counts[value] >= 2).length;
-    return distinctPairs >= 2 ? sum : 0;
-  }
   if (category === "threeKind") {
     const hasThree = values.some((value) => counts[value] >= 3);
     return hasThree ? sum : 0;
@@ -102,7 +92,7 @@ export const yatzyUpperTotal = (sheet: YatzyScoreSheet) => (
   (sheet.ones || 0) + (sheet.twos || 0) + (sheet.threes || 0) + (sheet.fours || 0) + (sheet.fives || 0) + (sheet.sixes || 0)
 );
 
-export const yatzyBonusFor = (sheet: YatzyScoreSheet) => yatzyUpperTotal(sheet) >= 63 ? 50 : 0;
+export const yatzyBonusFor = (sheet: YatzyScoreSheet) => yatzyUpperTotal(sheet) >= 63 ? 35 : 0;
 
 export const yatzyTotalFor = (sheet: YatzyScoreSheet) => (
   Object.values(sheet).reduce<number>((sum, value) => sum + (value || 0), 0) + yatzyBonusFor(sheet)
@@ -115,8 +105,6 @@ export const emptyYatzySheet = (): YatzyScoreSheet => ({
   fours: null,
   fives: null,
   sixes: null,
-  onePair: null,
-  twoPairs: null,
   threeKind: null,
   fourKind: null,
   smallStraight: null,
