@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Brain, CircleDot, Dice5, Flame, Grid2x2, Grid3X3, Landmark, Puzzle, Rows3, Ship, Sparkles, Swords, Table2, Zap } from "lucide-react";
+import { ArrowUpDown, Brain, CircleDot, Dice5, Flame, Gamepad2, Grid2x2, Grid3X3, Hand, Landmark, Lightbulb, Puzzle, Rows3, Ship, Sparkles, Swords, Table2, Timer, Zap } from "lucide-react";
 
 export type GameId =
   | "tictactoe"
@@ -16,7 +16,12 @@ export type GameId =
   | "quarto"
   | "memory"
   | "dotsboxes"
-  | "reflex";
+  | "reflex"
+  | "rps"
+  | "simon"
+  | "tapbattle"
+  | "higherlower"
+  | "pong";
 
 export type GameDefinition = {
   id: GameId;
@@ -231,6 +236,71 @@ export const games: GameDefinition[] = [
       objective: "Être le premier à taper quand l'écran passe au vert, premier à 5 points.",
       turn: "Chacun pose un pouce sur sa zone. Au vert, le plus rapide marque.",
       tips: ["Patience : taper avant le vert offre le point à l'autre.", "Chaque zone est orientée vers son joueur, face à face."]
+    }
+  },
+  {
+    id: "rps",
+    title: "Pierre-Feuille-Ciseaux",
+    subtitle: "Choix caché, révélation",
+    icon: Hand,
+    accent: "#ef7a59",
+    category: "Rapide",
+    rules: {
+      objective: "Gagner 5 manches avant l'adversaire.",
+      turn: "Chacun choisit en secret sur son côté de l'écran, puis tout se révèle d'un coup.",
+      tips: ["Pierre bat ciseaux, ciseaux bat feuille, feuille bat pierre.", "Égalité : la manche est rejouée.", "Les boutons ne révèlent pas ton choix, joue sans crainte."]
+    }
+  },
+  {
+    id: "simon",
+    title: "Simon",
+    subtitle: "Mémorise la séquence",
+    icon: Lightbulb,
+    accent: "#d89cff",
+    category: "Rapide",
+    rules: {
+      objective: "Reproduire la séquence de couleurs sans se tromper. Le premier qui craque perd.",
+      turn: "Regarde la séquence s'allumer, puis reproduis-la. Réussie : une couleur s'ajoute et c'est à l'autre.",
+      tips: ["Chaque couleur a sa note : écoute autant que tu regardes.", "La séquence s'allonge à chaque tour.", "Une seule erreur et c'est perdu !"]
+    }
+  },
+  {
+    id: "tapbattle",
+    title: "Tap Battle",
+    subtitle: "10 secondes de folie",
+    icon: Timer,
+    accent: "#39c6a3",
+    category: "Rapide",
+    rules: {
+      objective: "Taper plus de fois que l'adversaire en 10 secondes.",
+      turn: "Chacun martèle sa zone dès le top départ. Le compteur tourne en direct.",
+      tips: ["Utilise plusieurs doigts si tu veux, tout compte.", "Égalité possible : dans ce cas, on rejoue !"]
+    }
+  },
+  {
+    id: "higherlower",
+    title: "Plus haut Plus bas",
+    subtitle: "Trouve le nombre secret",
+    icon: ArrowUpDown,
+    accent: "#7fb7ff",
+    category: "Déduction",
+    rules: {
+      objective: "Trouver le nombre secret de l'adversaire en moins d'essais que lui.",
+      turn: "Chacun cache un nombre entre 1 et 100. L'autre devine avec les indices « plus haut » / « plus bas ».",
+      tips: ["Deux manches : chacun devine une fois.", "Le moins d'essais au total gagne.", "Stratégie : coupe toujours l'intervalle en deux."]
+    }
+  },
+  {
+    id: "pong",
+    title: "Pong",
+    subtitle: "Un palet, deux pouces",
+    icon: Gamepad2,
+    accent: "#f5c84c",
+    category: "Rapide",
+    rules: {
+      objective: "Marquer 5 points en faisant passer la balle derrière la raquette adverse.",
+      turn: "Glisse ton pouce sur ta moitié d'écran pour déplacer ta raquette. La balle accélère à chaque échange.",
+      tips: ["Touche la balle avec le bord de la raquette pour l'angler.", "Joueur 1 en bas, Joueur 2 en haut, en simultané."]
     }
   }
 ];

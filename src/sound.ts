@@ -98,6 +98,16 @@ export const sfx = (kind: SfxKind) => {
   }
 };
 
+// Notes des 4 pads du Simon (mi, la, do#, mi aigu — accord classique du jeu).
+const padFrequencies = [329.63, 440.0, 554.37, 659.25];
+
+export const padTone = (index: number, dur = 0.32) => {
+  if (!soundOn) return;
+  const audio = ensureCtx();
+  if (!audio || !master) return;
+  tone(audio, master, { freq: padFrequencies[index % padFrequencies.length], at: audio.currentTime, dur, type: "triangle", vol: 0.07 });
+};
+
 // --- Musique d'ambiance : une boucle par style de thème ---
 
 export type MusicStyle = "chill" | "chiptune" | "acoustic";

@@ -2889,3 +2889,290 @@ button {
   background: color-mix(in srgb, var(--gold) 16%, var(--inset));
   color: var(--text);
 }
+
+/* ====== Pierre-Feuille-Ciseaux ====== */
+
+.rps-zone {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 2px solid color-mix(in srgb, var(--player-color) 40%, transparent);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--player-color) 12%, var(--surface));
+}
+
+.rps-zone.zone-1 {
+  transform: rotate(180deg);
+}
+
+.rps-zone-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  font-size: 0.92rem;
+}
+
+.rps-zone-head em {
+  font-style: normal;
+  font-size: 0.8rem;
+  color: var(--brand);
+}
+
+.rps-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.rps-pick {
+  display: grid;
+  place-items: center;
+  min-height: 78px;
+  border-radius: var(--radius-control);
+  background: var(--inset);
+  font-size: 2.2rem;
+  transition: transform 120ms ease, background 150ms ease, opacity 150ms ease;
+}
+
+.rps-pick:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.rps-pick:disabled {
+  opacity: 0.5;
+}
+
+.rps-pick.revealed {
+  opacity: 1;
+  background: color-mix(in srgb, var(--player-color) 30%, var(--inset));
+  box-shadow: 0 0 0 3px var(--player-color);
+  animation: pulse 500ms ease 2 alternate;
+}
+
+.rps-middle {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  min-height: 52px;
+  text-align: center;
+}
+
+.rps-hint {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.rps-note {
+  font-weight: 850;
+}
+
+/* ====== Simon ====== */
+
+.simon-board {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  justify-self: center;
+  width: min(100%, 340px, calc(100dvh - 380px));
+  aspect-ratio: 1;
+}
+
+.simon-pad {
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--pad-color) 30%, var(--inset));
+  border: 2px solid color-mix(in srgb, var(--pad-color) 45%, transparent);
+  transition: background 120ms ease, box-shadow 120ms ease, transform 80ms ease;
+}
+
+.simon-pad:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.simon-pad.lit {
+  background: var(--pad-color);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--pad-color) 75%, transparent);
+}
+
+.simon-board .simon-pad:nth-child(1) { border-top-left-radius: 50%; }
+.simon-board .simon-pad:nth-child(2) { border-top-right-radius: 50%; }
+.simon-board .simon-pad:nth-child(3) { border-bottom-left-radius: 50%; }
+.simon-board .simon-pad:nth-child(4) { border-bottom-right-radius: 50%; }
+
+.simon-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  font-size: 1.5rem;
+  font-weight: 950;
+  pointer-events: none;
+}
+
+/* ====== Tap Battle ====== */
+
+.tap-timer {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--inset);
+}
+
+.tap-timer i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand), var(--gold));
+  transform-origin: left;
+  transition: transform 100ms linear;
+}
+
+.tap-arena {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 8px;
+  min-height: calc(100dvh - 360px);
+}
+
+.tap-pad {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  border-radius: var(--radius-card);
+  border: 2px solid color-mix(in srgb, var(--player-color) 45%, transparent);
+  background: color-mix(in srgb, var(--player-color) 18%, var(--surface));
+  color: var(--text);
+  transition: background 60ms ease;
+}
+
+.tap-pad:disabled {
+  opacity: 0.55;
+}
+
+.tap-pad:active:not(:disabled) {
+  background: color-mix(in srgb, var(--player-color) 38%, var(--surface));
+}
+
+.tap-pad.pad-1 {
+  transform: rotate(180deg);
+}
+
+.tap-count {
+  font-size: 2.6rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.tap-name {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--soft);
+}
+
+.tap-countdown {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 950;
+  color: var(--gold);
+}
+
+/* ====== Plus haut / Plus bas ====== */
+
+.hl-input {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.hl-input input {
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  padding: 0 14px;
+  background: var(--inset);
+  color: var(--text);
+  font: inherit;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.hl-history {
+  display: grid;
+  gap: 6px;
+  max-height: 40dvh;
+  overflow: auto;
+}
+
+.hl-history span {
+  padding: 10px 14px;
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-weight: 800;
+}
+
+.hl-history span.low {
+  border-color: color-mix(in srgb, var(--brand) 40%, var(--line));
+}
+
+.hl-history span.high {
+  border-color: color-mix(in srgb, var(--coral) 40%, var(--line));
+}
+
+.hl-history span.found {
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 14%, var(--surface));
+}
+
+.hl-interlude {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.hl-interlude p {
+  margin: 0;
+  line-height: 1.45;
+  color: var(--soft);
+}
+
+.hl-interlude strong {
+  color: var(--text);
+}
+
+/* ====== Pong ====== */
+
+.pong-wrap {
+  position: relative;
+  justify-self: center;
+  width: min(100%, 420px);
+}
+
+.pong-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--line);
+  touch-action: none;
+}
+
+.pong-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(8, 12, 18, 0.55);
+  border-radius: var(--radius-card);
+}

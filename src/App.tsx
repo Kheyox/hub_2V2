@@ -10,9 +10,14 @@ import { Mancala } from "./components/Mancala";
 import { Mastermind } from "./components/Mastermind";
 import { Matches } from "./components/Matches";
 import { MemoryDuel } from "./components/MemoryDuel";
+import { HigherLower } from "./components/HigherLower";
+import { Pong } from "./components/Pong";
 import { Quarto } from "./components/Quarto";
 import { Reflex } from "./components/Reflex";
 import { Reversi } from "./components/Reversi";
+import { RockPaperScissors } from "./components/RockPaperScissors";
+import { Simon } from "./components/Simon";
+import { TapBattle } from "./components/TapBattle";
 import { TicTacToe } from "./components/TicTacToe";
 import { Yatzy } from "./components/Yatzy";
 import { games, type GameDefinition, type GameId } from "./games";
@@ -136,7 +141,12 @@ const gameMap: Record<GameId, (props: GameProps) => JSX.Element> = {
   quarto: (props) => <Quarto {...props} />,
   memory: (props) => <MemoryDuel {...props} />,
   dotsboxes: (props) => <DotsBoxes {...props} />,
-  reflex: (props) => <Reflex {...props} />
+  reflex: (props) => <Reflex {...props} />,
+  rps: (props) => <RockPaperScissors {...props} />,
+  simon: (props) => <Simon {...props} />,
+  tapbattle: (props) => <TapBattle {...props} />,
+  higherlower: (props) => <HigherLower {...props} />,
+  pong: (props) => <Pong {...props} />
 };
 
 export function App() {
@@ -179,6 +189,30 @@ export function App() {
   useEffect(() => {
     configureAudio({ sound: settings.sound, music: settings.music, style: musicStyleForTheme[theme] });
   }, [settings.sound, settings.music, theme]);
+
+  // Écran toujours allumé pendant une partie (Screen Wake Lock API).
+  useEffect(() => {
+    if (!selectedGame || !("wakeLock" in navigator)) return;
+    let lock: { release: () => Promise<void> } | null = null;
+    let active = true;
+    const acquire = async () => {
+      try {
+        lock = await (navigator as Navigator & { wakeLock: { request: (type: "screen") => Promise<{ release: () => Promise<void> }> } }).wakeLock.request("screen");
+      } catch {
+        lock = null;
+      }
+    };
+    const onVisibility = () => {
+      if (active && document.visibilityState === "visible") acquire();
+    };
+    acquire();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      active = false;
+      document.removeEventListener("visibilitychange", onVisibility);
+      lock?.release().catch(() => undefined);
+    };
+  }, [selectedGame]);
 
   useEffect(() => {
     window.localStorage.setItem("duelio.theme", JSON.stringify(theme));
