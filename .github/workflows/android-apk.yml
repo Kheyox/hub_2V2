@@ -91,7 +91,7 @@ jobs:
         run: ./gradlew assembleRelease
 
       - name: Rename APK
-        run: cp android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/Duelio.apk
+        run: cp android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/Versus.apk
 
       - name: Write public update manifest
         run: |
@@ -100,24 +100,24 @@ jobs:
           {
             "version": "$VERSION",
             "releaseUrl": "https://github.com/${{ github.repository }}/releases/latest",
-            "apkUrl": "https://github.com/${{ github.repository }}/releases/latest/download/Duelio.apk",
-            "notes": "Duelio $VERSION"
+            "apkUrl": "https://github.com/${{ github.repository }}/releases/latest/download/Versus.apk",
+            "notes": "Versus $VERSION"
           }
           EOF
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Duelio-apk
-          path: android/app/build/outputs/apk/release/Duelio.apk
+          name: Versus-apk
+          path: android/app/build/outputs/apk/release/Versus.apk
 
       - name: Attach APK to GitHub release
         if: steps.ver.outputs.release == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
-          name: Duelio ${{ steps.ver.outputs.tag }}
-          files: android/app/build/outputs/apk/release/Duelio.apk
+          name: Versus ${{ steps.ver.outputs.tag }}
+          files: android/app/build/outputs/apk/release/Versus.apk
 
       - name: Upload Pages artifact
         if: steps.ver.outputs.release == 'true'

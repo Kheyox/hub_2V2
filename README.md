@@ -1,4 +1,4 @@
-# Duelio
+# Versus
 
 Hub de jeux tour par tour en 1v1 sur le meme telephone, genere en APK Android via Capacitor.
 
@@ -42,4 +42,4 @@ Secrets requis dans `Settings > Secrets and variables > Actions` :
 - `ANDROID_KEY_ALIAS` : alias de la cle.
 - `ANDROID_KEY_PASSWORD` : mot de passe de la cle.
 
-Le workflow GitHub Actions lance les tests, construit l'app, signe `Duelio.apk`, l'attache a la release taguee, puis publie `update-manifest.json` via GitHub Pages pour que l'app puisse verifier les mises a jour sans lire l'API d'un depot prive.
+Le workflow GitHub Actions lance les tests, construit l'app, signe `Versus.apk`, l'attache a la release taguee, puis publie `update-manifest.json` via GitHub Pages pour que l'app puisse verifier les mises a jour sans lire l'API d'un depot prive.

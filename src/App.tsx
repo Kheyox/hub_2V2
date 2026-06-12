@@ -450,7 +450,7 @@ export function App() {
   return (
     <main className={`app-shell theme-${theme} ${selectedGame ? "in-game" : "in-hub"}`}>
       {!onboarding.done && (
-        <section className="onboarding-modal" role="dialog" aria-modal="true" aria-label="Bienvenue dans Duelio">
+        <section className="onboarding-modal" role="dialog" aria-modal="true" aria-label="Bienvenue dans Versus">
           <div className="onboarding-card">
             <div className="onboarding-preview" aria-hidden="true">
               <span />
@@ -503,11 +503,11 @@ export function App() {
             <ArrowLeft size={22} />
           </button>
         ) : (
-          <div className="brand-mark">D</div>
+          <div className="brand-mark">VS</div>
         )}
 
         <div>
-          <p className="kicker">Duelio</p>
+          <p className="kicker">Versus</p>
           <h1>{currentGame?.title || "Jeux à deux"}</h1>
         </div>
 
@@ -561,7 +561,7 @@ export function App() {
             )}
             {update.status === "current" && (
               <>
-                <h2>Duelio est à jour</h2>
+                <h2>Versus est à jour</h2>
                 <p>Version installée : {update.currentVersion}. Dernière release : {update.latestVersion}.</p>
               </>
             )}
@@ -757,7 +757,7 @@ export function App() {
                 <div>
                   <p className="kicker">🏆 Tournoi multi-jeux</p>
                   <h3>Marathon surprise</h3>
-                  <span>Duelio tire au sort une série de jeux et les enchaîne. Le tableau des scores s'affiche entre chaque manche.</span>
+                  <span>Versus tire au sort une série de jeux et les enchaîne. Le tableau des scores s'affiche entre chaque manche.</span>
                 </div>
                 <div className="tournament-actions">
                   <button onClick={() => startMarathon(3)}>3 jeux</button>
