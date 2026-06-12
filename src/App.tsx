@@ -58,6 +58,13 @@ type TournamentState = {
   target: 3 | 5 | 7;
   score: [number, number];
 };
+type MarathonState = {
+  active: boolean;
+  games: GameId[];
+  round: number;
+  score: [number, number];
+};
+const defaultMarathon: MarathonState = { active: false, games: [], round: 0, score: [0, 0] };
 type OnboardingState = {
   done: boolean;
   step: 0 | 1 | 2;
@@ -147,6 +154,7 @@ export function App() {
   const [gameFilter, setGameFilter] = useState<GameFilter>("Tous");
   const [rulesGame, setRulesGame] = useState<GameDefinition | null>(null);
   const [tournament, setTournament] = useState<TournamentState>(() => loadJson("duelio.tournament", defaultTournament));
+  const [marathon, setMarathon] = useState<MarathonState>(defaultMarathon);
   const [onboarding, setOnboarding] = useState<OnboardingState>(() => loadJson("duelio.onboarding", { done: false, step: 0 as const }));
   const [update, setUpdate] = useState<UpdateInfo | null>(null);
   const [updatePanelOpen, setUpdatePanelOpen] = useState(false);
@@ -207,6 +215,7 @@ export function App() {
         if (selectedGame) {
           setSelectedGame(null);
           setLastResult(null);
+          setMarathon(defaultMarathon);
           return;
         }
         if (updatePanelOpen) {
@@ -312,6 +321,12 @@ export function App() {
       nextScore[winner] += 1;
       return { ...current, score: nextScore };
     });
+    setMarathon((current) => {
+      if (!current.active) return current;
+      const nextScore: [number, number] = [...current.score];
+      nextScore[winner] += 1;
+      return { ...current, score: nextScore };
+    });
     playFeedback("win");
   };
 
@@ -353,6 +368,40 @@ export function App() {
     playFeedback("tap");
   };
 
+  const startMarathon = (count: 3 | 5) => {
+    const pool = [...games.map((game) => game.id)].sort(() => Math.random() - 0.5).slice(0, count);
+    setMarathon({ active: true, games: pool, round: 0, score: [0, 0] });
+    setSelectedGame(pool[0]);
+    setLastPlayed(pool[0]);
+    setLastResult(null);
+    playFeedback("tap");
+  };
+
+  const advanceMarathon = () => {
+    setMarathon((current) => {
+      const nextRound = current.round + 1;
+      if (nextRound >= current.games.length) return current;
+      setSelectedGame(current.games[nextRound]);
+      setLastPlayed(current.games[nextRound]);
+      setLastResult(null);
+      return { ...current, round: nextRound };
+    });
+    playFeedback("tap");
+  };
+
+  const replayMarathonRound = () => {
+    setLastResult(null);
+    setGameRun((current) => current + 1);
+    playFeedback("tap");
+  };
+
+  const stopMarathon = () => {
+    setMarathon(defaultMarathon);
+    setSelectedGame(null);
+    setLastResult(null);
+    playFeedback("tap");
+  };
+
   const bestGameFor = (player: PlayerIndex) => {
     const best = Object.entries(stats.perGameWins).sort((a, b) => (b[1][player] || 0) - (a[1][player] || 0))[0];
     const game = best ? games.find((item) => item.id === best[0]) : null;
@@ -362,6 +411,10 @@ export function App() {
   const tournamentLimit = Math.ceil(tournament.target / 2);
   const tournamentWinner: PlayerIndex | null = tournament.score[0] >= tournamentLimit ? 0 : tournament.score[1] >= tournamentLimit ? 1 : null;
   const totalGames = stats.gamesPlayed[0] + stats.gamesPlayed[1];
+  const marathonGames = useMemo(() => marathon.games.map((id) => games.find((game) => game.id === id)).filter(Boolean) as GameDefinition[], [marathon.games]);
+  const marathonLastRound = marathon.active && marathon.round >= marathon.games.length - 1;
+  const marathonWinner: PlayerIndex | null = marathon.score[0] === marathon.score[1] ? null : marathon.score[0] > marathon.score[1] ? 0 : 1;
+  const nextMarathonGame = marathon.active && !marathonLastRound ? games.find((game) => game.id === marathon.games[marathon.round + 1]) : null;
   const headToHead = useMemo(() => games
     .map((game) => ({ game, wins: (stats.perGameWins[game.id] || [0, 0]) as [number, number] }))
     .filter(({ wins }) => wins[0] + wins[1] > 0)
@@ -446,7 +499,7 @@ export function App() {
       )}
       <header className="topbar">
         {selectedGame ? (
-          <button className="icon-button" onClick={() => setSelectedGame(null)} aria-label="Retour au hub">
+          <button className="icon-button" onClick={() => { setSelectedGame(null); setMarathon(defaultMarathon); }} aria-label="Retour au hub">
             <ArrowLeft size={22} />
           </button>
         ) : (
@@ -554,7 +607,65 @@ export function App() {
 
       {selectedGame ? (
         <section className={`game-stage game-stage-${selectedGame}`} key={`${selectedGame}-${gameRun}`}>
-          {lastResult && (
+          {marathon.active && !lastResult && (
+            <div className="marathon-banner">
+              <div className="marathon-progress" aria-hidden="true">
+                {marathonGames.map((game, index) => (
+                  <i key={game.id} className={index < marathon.round ? "done" : index === marathon.round ? "current" : ""} />
+                ))}
+              </div>
+              <div className="marathon-banner-info">
+                <strong>Manche {marathon.round + 1}/{marathon.games.length}</strong>
+                <span>{players[0].avatar} {marathon.score[0]} – {marathon.score[1]} {players[1].avatar}</span>
+              </div>
+              <button className="mini-action" onClick={replayMarathonRound}>Nul, rejouer</button>
+            </div>
+          )}
+          {lastResult && marathon.active && (
+            <>
+              <div className="confetti-fullscreen" aria-hidden="true">
+                {Array.from({ length: 40 }).map((_, index) => <span key={index} />)}
+              </div>
+              <div className="result-panel celebrate" style={{ "--win-color": players[lastResult.winner].color } as React.CSSProperties}>
+                <div className="result-head">
+                  <span className="result-avatar">🏆</span>
+                  <div>
+                    <p className="kicker">{marathonLastRound ? "Fin du tournoi" : `Manche ${marathon.round + 1}/${marathon.games.length}`}</p>
+                    <h2>{marathonLastRound ? (marathonWinner === null ? "Tournoi nul !" : `${players[marathonWinner].name} remporte le tournoi !`) : `${lastResult.winnerName} gagne la manche`}</h2>
+                    <span>{lastResult.gameTitle} · {lastResult.score}</span>
+                  </div>
+                </div>
+                <div className="marathon-scoreboard">
+                  <div className="marathon-tally">
+                    <span style={{ color: players[0].color }}>{players[0].avatar} {players[0].name}</span>
+                    <strong>{marathon.score[0]} – {marathon.score[1]}</strong>
+                    <span style={{ color: players[1].color }}>{players[1].name} {players[1].avatar}</span>
+                  </div>
+                  <div className="marathon-list">
+                    {marathonGames.map((game, index) => (
+                      <span key={game.id} className={index < marathon.round ? "played" : index === marathon.round ? "played now" : "upcoming"}>
+                        {index < marathon.round ? "✓" : index === marathon.round ? "●" : "○"} {game.title}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="result-actions">
+                  {marathonLastRound ? (
+                    <>
+                      <button className="primary-action" onClick={() => startMarathon(marathon.games.length as 3 | 5)}>Nouveau tournoi</button>
+                      <button className="secondary-action" onClick={stopMarathon}>Terminer</button>
+                    </>
+                  ) : (
+                    <>
+                      <button className="primary-action" onClick={advanceMarathon}>Manche suivante{nextMarathonGame ? ` : ${nextMarathonGame.title}` : ""}</button>
+                      <button className="secondary-action" onClick={stopMarathon}>Abandonner</button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+          {lastResult && !marathon.active && (
             <>
               <div className="confetti-fullscreen" aria-hidden="true">
                 {Array.from({ length: 40 }).map((_, index) => <span key={index} />)}
@@ -630,15 +741,27 @@ export function App() {
 
               <section className="tournament-panel">
                 <div>
-                  <p className="kicker">Tournoi</p>
+                  <p className="kicker">Tournoi (même série)</p>
                   <h3>{tournament.enabled ? `${players[0].name} ${tournament.score[0]} - ${tournament.score[1]} ${players[1].name}` : "Série de manches"}</h3>
-                  <span>{tournament.enabled ? `Premier à ${tournamentLimit} victoire${tournamentLimit > 1 ? "s" : ""}` : "Lance un premier à 3, 5 ou 7 manches : Duelio garde le score."}</span>
+                  <span>{tournament.enabled ? `Premier à ${tournamentLimit} victoire${tournamentLimit > 1 ? "s" : ""}` : "Compte les victoires des jeux que tu choisis. Premier à 3, 5 ou 7."}</span>
                 </div>
                 <div className="tournament-actions">
                   {[3, 5, 7].map((target) => (
                     <button key={target} className={tournament.enabled && tournament.target === target ? "active" : ""} onClick={() => startTournament(target as 3 | 5 | 7)}>{target}</button>
                   ))}
                   {tournament.enabled && <button onClick={stopTournament}>Stop</button>}
+                </div>
+              </section>
+
+              <section className="marathon-panel">
+                <div>
+                  <p className="kicker">🏆 Tournoi multi-jeux</p>
+                  <h3>Marathon surprise</h3>
+                  <span>Duelio tire au sort une série de jeux et les enchaîne. Le tableau des scores s'affiche entre chaque manche.</span>
+                </div>
+                <div className="tournament-actions">
+                  <button onClick={() => startMarathon(3)}>3 jeux</button>
+                  <button onClick={() => startMarathon(5)}>5 jeux</button>
                 </div>
               </section>
 
