@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Brain, CircleDot, Dice5, Flame, Grid3X3, Landmark, Puzzle, Rows3, Ship, Sparkles, Swords, Table2 } from "lucide-react";
+import { Brain, CircleDot, Dice5, Flame, Grid2x2, Grid3X3, Landmark, Puzzle, Rows3, Ship, Sparkles, Swords, Table2, Zap } from "lucide-react";
 
 export type GameId =
   | "tictactoe"
@@ -14,7 +14,9 @@ export type GameId =
   | "dominoes"
   | "mancala"
   | "quarto"
-  | "memory";
+  | "memory"
+  | "dotsboxes"
+  | "reflex";
 
 export type GameDefinition = {
   id: GameId;
@@ -202,7 +204,33 @@ export const games: GameDefinition[] = [
     rules: {
       objective: "Retourner plus de paires que l'adversaire.",
       turn: "Retourne deux cartes. Une paire : tu marques et tu rejoues. Sinon, c'est à l'autre.",
-      tips: ["Mémorise aussi les cartes ratées par l'adversaire.", "16 cartes, 8 paires : la majorité est à 5."]
+      tips: ["Mémorise aussi les cartes ratées par l'adversaire.", "La taille de la grille (4x4 ou 6x6) se règle dans Options."]
+    }
+  },
+  {
+    id: "dotsboxes",
+    title: "Points & Carrés",
+    subtitle: "Ferme le carré, marque",
+    icon: Grid2x2,
+    accent: "#39c6a3",
+    category: "Stratégie",
+    rules: {
+      objective: "Fermer plus de carrés que l'adversaire sur la grille.",
+      turn: "Trace un trait entre deux points voisins. Fermer un carré te le fait gagner et rejouer.",
+      tips: ["Compléter un carré rejoue : enchaîne les chaînes !", "Évite de tracer le 3e côté d'un carré, tu l'offres à l'autre."]
+    }
+  },
+  {
+    id: "reflex",
+    title: "Réflexe",
+    subtitle: "Le plus rapide gagne",
+    icon: Zap,
+    accent: "#f5c84c",
+    category: "Rapide",
+    rules: {
+      objective: "Être le premier à taper quand l'écran passe au vert, premier à 5 points.",
+      turn: "Chacun pose un pouce sur sa zone. Au vert, le plus rapide marque.",
+      tips: ["Patience : taper avant le vert offre le point à l'autre.", "Chaque zone est orientée vers son joueur, face à face."]
     }
   }
 ];

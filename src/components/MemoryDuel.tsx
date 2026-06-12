@@ -2,11 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { GameHeader } from "../App";
 import type { GameProps, PlayerIndex } from "../playerTypes";
 
-const symbols = ["🦊", "🐙", "🌟", "🍒", "⚡", "🎈", "🐳", "🍀"];
-const makeDeck = () => [...symbols, ...symbols].map((symbol, id) => ({ symbol, id })).sort(() => Math.random() - 0.5);
+const symbols = ["🦊", "🐙", "🌟", "🍒", "⚡", "🎈", "🐳", "🍀", "🎲", "🍕", "🚀", "🌈", "🐸", "🍩", "🎸", "⚽", "🦄", "🔥"];
+const makeDeck = (size: number) => {
+  const pairCount = (size * size) / 2;
+  const chosen = symbols.slice(0, pairCount);
+  return [...chosen, ...chosen].map((symbol, id) => ({ symbol, id })).sort(() => Math.random() - 0.5);
+};
 
-export function MemoryDuel({ players, onWin, feedback }: GameProps) {
-  const [deck, setDeck] = useState(makeDeck);
+export function MemoryDuel({ players, settings, onWin, feedback }: GameProps) {
+  const size = settings.memorySize;
+  const [deck, setDeck] = useState(() => makeDeck(size));
   const [open, setOpen] = useState<number[]>([]);
   const [found, setFound] = useState<number[]>([]);
   const [turn, setTurn] = useState<PlayerIndex>(0);
@@ -15,6 +20,15 @@ export function MemoryDuel({ players, onWin, feedback }: GameProps) {
   const finished = found.length === deck.length;
   const winner = score[0] === score[1] ? null : (score[0] > score[1] ? 0 : 1) as PlayerIndex;
   const status = finished ? (winner === null ? "Égalité" : `${players[winner].name} gagne`) : `${players[turn].name} cherche une paire`;
+
+  useEffect(() => {
+    reported.current = false;
+    setDeck(makeDeck(size));
+    setOpen([]);
+    setFound([]);
+    setTurn(0);
+    setScore([0, 0]);
+  }, [size]);
 
   useEffect(() => {
     if (!finished || winner === null || reported.current) return;
@@ -43,7 +57,7 @@ export function MemoryDuel({ players, onWin, feedback }: GameProps) {
 
   const reset = () => {
     reported.current = false;
-    setDeck(makeDeck());
+    setDeck(makeDeck(size));
     setOpen([]);
     setFound([]);
     setTurn(0);
@@ -54,10 +68,10 @@ export function MemoryDuel({ players, onWin, feedback }: GameProps) {
     <>
       <GameHeader title="Memory" status={status} onReset={reset} />
       <div className="duel-score">
-        <span className={turn === 0 && !finished ? "active" : ""}>{players[0].name} · {score[0]} paires</span>
-        <span className={turn === 1 && !finished ? "active" : ""}>{players[1].name} · {score[1]} paires</span>
+        <span className={turn === 0 && !finished ? "active" : ""}>{players[0].avatar} {players[0].name} · {score[0]} paires</span>
+        <span className={turn === 1 && !finished ? "active" : ""}>{players[1].avatar} {players[1].name} · {score[1]} paires</span>
       </div>
-      <div className="memory-board">
+      <div className={`memory-board size-${size}`} style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}>
         {deck.map((card, index) => {
           const visible = open.includes(index) || found.includes(index);
           return <button key={card.id} className={visible ? "memory-card open" : "memory-card"} onClick={() => flip(index)}>{visible ? card.symbol : ""}</button>;

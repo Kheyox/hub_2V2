@@ -1,11 +1,35 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GameHeader } from "../App";
 import type { GameProps, PlayerIndex } from "../playerTypes";
+import { Handover } from "./Handover";
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
 
-export function Hangman({ players, settings, onWin }: GameProps) {
-  const [phase, setPhase] = useState<"roles" | "setup" | "guess" | "done">("roles");
+// Le bonhomme se dessine en 10 traits, répartis sur le nombre d'erreurs autorisées.
+const figureParts = [
+  <line key="base" x1="10" y1="115" x2="70" y2="115" />,
+  <line key="pole" x1="30" y1="115" x2="30" y2="10" />,
+  <line key="beam" x1="30" y1="10" x2="80" y2="10" />,
+  <line key="rope" x1="80" y1="10" x2="80" y2="25" />,
+  <circle key="head" cx="80" cy="35" r="10" fill="none" />,
+  <line key="body" x1="80" y1="45" x2="80" y2="75" />,
+  <line key="armL" x1="80" y1="52" x2="65" y2="65" />,
+  <line key="armR" x1="80" y1="52" x2="95" y2="65" />,
+  <line key="legL" x1="80" y1="75" x2="67" y2="95" />,
+  <line key="legR" x1="80" y1="75" x2="93" y2="95" />
+];
+
+function HangmanFigure({ errors, max }: { errors: number; max: number }) {
+  const shown = Math.ceil((errors * figureParts.length) / max);
+  return (
+    <svg className="hang-figure" viewBox="0 0 110 125" aria-label={`${errors} erreur${errors > 1 ? "s" : ""} sur ${max}`}>
+      {figureParts.slice(0, shown)}
+    </svg>
+  );
+}
+
+export function Hangman({ players, settings, onWin, feedback }: GameProps) {
+  const [phase, setPhase] = useState<"roles" | "setup" | "hand" | "guess" | "done">("roles");
   const [setter, setSetter] = useState<PlayerIndex>(0);
   const [wordInput, setWordInput] = useState("");
   const [word, setWord] = useState("");
@@ -41,7 +65,12 @@ export function Hangman({ players, settings, onWin }: GameProps) {
     if (!clean) return;
     setWord(clean);
     setGuesses([]);
-    setPhase("guess");
+    setPhase("hand");
+  };
+
+  const guess = (letter: string) => {
+    feedback(word.includes(letter) ? "tap" : "error");
+    setGuesses([...guesses, letter]);
   };
 
   const reset = () => {
@@ -76,17 +105,18 @@ export function Hangman({ players, settings, onWin }: GameProps) {
           <button className="primary-action" onClick={start}>Cacher le mot</button>
         </div>
       )}
+      {phase === "hand" && (
+        <Handover to={players[guesser].name} note={`${word.length} lettres à deviner.`} onReady={() => setPhase("guess")} />
+      )}
       {(phase === "guess" || phase === "done") && (
         <>
-          <div className="hangman-word">{visibleWord}</div>
-          <div className="hangman-meter" aria-label={`${errors} erreurs`}>
-            {Array.from({ length: settings.hangmanErrors }).map((_, index) => (
-              <span key={index} className={index < errors ? "filled" : ""} />
-            ))}
+          <div className="hangman-top">
+            <HangmanFigure errors={errors} max={settings.hangmanErrors} />
+            <div className="hangman-word">{visibleWord}</div>
           </div>
           <div className="keyboard">
             {alphabet.map((letter) => (
-              <button key={letter} disabled={guesses.includes(letter) || won || lost} onClick={() => setGuesses([...guesses, letter])}>
+              <button key={letter} disabled={guesses.includes(letter) || won || lost} onClick={() => guess(letter)}>
                 {letter}
               </button>
             ))}

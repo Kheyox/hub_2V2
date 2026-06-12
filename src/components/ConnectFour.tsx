@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GameHeader } from "../App";
-import { connectFourWinner } from "../gameEngines";
+import { connectFourWinningLine } from "../gameEngines";
 import type { GameProps, PlayerIndex } from "../playerTypes";
 
 type Player = "R" | "Y";
@@ -13,7 +13,8 @@ export function ConnectFour({ players, onWin, feedback }: GameProps) {
   const [board, setBoard] = useState<Cell[]>(Array(rows * cols).fill(null));
   const [turn, setTurn] = useState<Player>("R");
   const reportedWinner = useRef<Player | null>(null);
-  const winner = useMemo(() => connectFourWinner(board, rows, cols), [board]);
+  const winningLine = useMemo(() => connectFourWinningLine(board, rows, cols), [board]);
+  const winner = winningLine ? board[winningLine[0]] : null;
   const isDraw = !winner && board.every(Boolean);
   const playerName = (token: Player) => players[token === "R" ? 0 : 1].name;
   const status = winner ? `${playerName(winner)} gagne` : isDraw ? "Grille pleine — match nul" : `À ${playerName(turn)} de jouer`;
@@ -58,7 +59,7 @@ export function ConnectFour({ players, onWin, feedback }: GameProps) {
             </button>
           ))}
           {board.map((cell, index) => (
-            <button key={index} className={`connect-cell ${cell || ""}`} onClick={() => drop(index % cols)} aria-label={`Cellule ${index + 1}`}>
+            <button key={index} className={`connect-cell ${cell || ""} ${winningLine?.includes(index) ? "winner" : ""}`} onClick={() => drop(index % cols)} aria-label={`Cellule ${index + 1}`}>
               {cell && <span className="connect-token" />}
             </button>
           ))}

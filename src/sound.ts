@@ -98,7 +98,9 @@ export const sfx = (kind: SfxKind) => {
   }
 };
 
-// --- Musique d'ambiance : boucle d'arpèges douce (do majeur, 4 accords) ---
+// --- Musique d'ambiance : une boucle par style de thème ---
+
+export type MusicStyle = "chill" | "chiptune" | "acoustic";
 
 const chords: number[][] = [
   [261.63, 329.63, 392.0, 523.25],  // C
@@ -107,20 +109,30 @@ const chords: number[][] = [
   [196.0, 246.94, 293.66, 392.0]    // G
 ];
 const bassNotes = [130.81, 110.0, 87.31, 98.0];
-const BAR = 2.4;
+
+let musicStyle: MusicStyle = "chill";
+
+const styleParams: Record<MusicStyle, { bar: number; arp: OscillatorType; arpVol: number; notes: number; bassType: OscillatorType }> = {
+  chill: { bar: 2.4, arp: "triangle", arpVol: 0.022, notes: 8, bassType: "sine" },
+  chiptune: { bar: 1.5, arp: "square", arpVol: 0.011, notes: 8, bassType: "square" },
+  acoustic: { bar: 3.2, arp: "sine", arpVol: 0.03, notes: 4, bassType: "sine" }
+};
+
+const barLength = () => styleParams[musicStyle].bar;
 
 const scheduleBar = (audio: AudioContext, destination: AudioNode, start: number, bar: number) => {
+  const params = styleParams[musicStyle];
   const chord = chords[bar % chords.length];
   const bass = bassNotes[bar % bassNotes.length];
-  tone(audio, destination, { freq: bass, at: start, dur: BAR * 0.9, type: "sine", vol: 0.045 });
-  for (let i = 0; i < 8; i += 1) {
-    const note = chord[i % chord.length] * (i >= 4 ? 2 : 1);
-    tone(audio, destination, { freq: note, at: start + i * (BAR / 8), dur: 0.34, type: "triangle", vol: 0.022 });
+  tone(audio, destination, { freq: bass, at: start, dur: params.bar * 0.9, type: params.bassType, vol: params.bassType === "square" ? 0.014 : 0.045 });
+  for (let i = 0; i < params.notes; i += 1) {
+    const note = chord[i % chord.length] * (i >= params.notes / 2 ? 2 : 1);
+    tone(audio, destination, { freq: note, at: start + i * (params.bar / params.notes), dur: params.bar / params.notes * 1.1, type: params.arp, vol: params.arpVol });
   }
   // petite mélodie une bar sur deux
   if (bar % 2 === 1) {
     const lead = chord[(bar + 1) % chord.length] * 2;
-    tone(audio, destination, { freq: lead, at: start + BAR / 2, dur: 0.5, type: "sine", vol: 0.03 });
+    tone(audio, destination, { freq: lead, at: start + params.bar / 2, dur: 0.5, type: musicStyle === "chiptune" ? "square" : "sine", vol: musicStyle === "chiptune" ? 0.014 : 0.03 });
   }
 };
 
@@ -129,7 +141,7 @@ const musicTick = () => {
   while (nextBarTime < ctx.currentTime + 1.2) {
     if (nextBarTime < ctx.currentTime) nextBarTime = ctx.currentTime + 0.05;
     scheduleBar(ctx, musicGain, nextBarTime, barIndex);
-    nextBarTime += BAR;
+    nextBarTime += barLength();
     barIndex += 1;
   }
 };
@@ -160,8 +172,9 @@ const stopMusic = () => {
   }
 };
 
-export const configureAudio = (options: { sound: boolean; music: boolean }) => {
+export const configureAudio = (options: { sound: boolean; music: boolean; style?: MusicStyle }) => {
   soundOn = options.sound;
+  if (options.style) musicStyle = options.style;
   if (options.music !== musicOn) {
     musicOn = options.music;
     if (musicOn) startMusic();

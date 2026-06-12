@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { GameHeader } from "../App";
 import type { GameProps, PlayerIndex } from "../playerTypes";
+import { Handover } from "./Handover";
 
 const colors = ["#e84834", "#f5c84c", "#39c6a3", "#7fb7ff", "#d89cff", "#f28bba"];
 const tries = 8;
@@ -15,7 +16,7 @@ const feedback = (secret: number[], guess: number[]) => {
 
 export function Mastermind({ players, onWin }: GameProps) {
   const [coder, setCoder] = useState<PlayerIndex>(0);
-  const [phase, setPhase] = useState<"roles" | "secret" | "guess" | "done">("roles");
+  const [phase, setPhase] = useState<"roles" | "secret" | "hand" | "guess" | "done">("roles");
   const [secret, setSecret] = useState<number[]>([]);
   const [guess, setGuess] = useState<number[]>([]);
   const [history, setHistory] = useState<Array<{ guess: number[]; exact: number; misplaced: number }>>([]);
@@ -44,7 +45,7 @@ export function Mastermind({ players, onWin }: GameProps) {
   };
 
   const submit = () => {
-    if (phase === "secret" && secret.length === 4) setPhase("guess");
+    if (phase === "secret" && secret.length === 4) setPhase("hand");
     if (phase === "guess" && guess.length === 4) {
       const result = feedback(secret, guess);
       setHistory([...history, { guess, ...result }]);
@@ -71,6 +72,15 @@ export function Mastermind({ players, onWin }: GameProps) {
             </button>
           ))}
         </div>
+      </>
+    );
+  }
+
+  if (phase === "hand") {
+    return (
+      <>
+        <GameHeader title="Mastermind" status={`${players[guesser].name} devine`} onReset={reset} />
+        <Handover to={players[guesser].name} note={`${tries} essais pour craquer le code.`} onReady={() => setPhase("guess")} />
       </>
     );
   }

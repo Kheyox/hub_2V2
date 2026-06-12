@@ -17,7 +17,7 @@ export type YatzyCategory =
   | "yatzy";
 export type YatzyScoreSheet = Record<YatzyCategory, number | null>;
 
-export const connectFourWinner = (board: ConnectFourToken[], rows = 6, cols = 7) => {
+export const connectFourWinningLine = (board: ConnectFourToken[], rows = 6, cols = 7): number[] | null => {
   const dirs = [
     [1, 0],
     [0, 1],
@@ -31,18 +31,23 @@ export const connectFourWinner = (board: ConnectFourToken[], rows = 6, cols = 7)
       if (!player) continue;
 
       for (const [dr, dc] of dirs) {
-        let count = 0;
+        const line: number[] = [];
         for (let step = 0; step < 4; step += 1) {
           const r = row + dr * step;
           const c = col + dc * step;
-          if (r >= 0 && r < rows && c >= 0 && c < cols && board[r * cols + c] === player) count += 1;
+          if (r >= 0 && r < rows && c >= 0 && c < cols && board[r * cols + c] === player) line.push(r * cols + c);
         }
-        if (count === 4) return player;
+        if (line.length === 4) return line;
       }
     }
   }
 
   return null;
+};
+
+export const connectFourWinner = (board: ConnectFourToken[], rows = 6, cols = 7) => {
+  const line = connectFourWinningLine(board, rows, cols);
+  return line ? board[line[0]] : null;
 };
 
 export const yatzyScoreFor = (category: YatzyCategory, dice: number[]) => {

@@ -1,8 +1,9 @@
-import { ArrowLeft, BookOpen, Download, Play, RefreshCw, RotateCcw, ShieldAlert, SlidersHorizontal, Star, Trophy, UserRound, X } from "lucide-react";
+import { ArrowLeft, BookOpen, Dices, Download, Play, RefreshCw, RotateCcw, ShieldAlert, SlidersHorizontal, Star, Trophy, UserRound, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Battleship } from "./components/Battleship";
 import { Checkers } from "./components/Checkers";
 import { ConnectFour } from "./components/ConnectFour";
+import { DotsBoxes } from "./components/DotsBoxes";
 import { Dominoes } from "./components/Dominoes";
 import { Hangman } from "./components/Hangman";
 import { Mancala } from "./components/Mancala";
@@ -10,21 +11,31 @@ import { Mastermind } from "./components/Mastermind";
 import { Matches } from "./components/Matches";
 import { MemoryDuel } from "./components/MemoryDuel";
 import { Quarto } from "./components/Quarto";
+import { Reflex } from "./components/Reflex";
 import { Reversi } from "./components/Reversi";
 import { TicTacToe } from "./components/TicTacToe";
 import { Yatzy } from "./components/Yatzy";
 import { games, type GameDefinition, type GameId } from "./games";
 import type { GameProps, GameSettings, PlayerIndex, PlayerProfiles } from "./playerTypes";
-import { configureAudio, sfx, type SfxKind } from "./sound";
+import { configureAudio, sfx, type MusicStyle, type SfxKind } from "./sound";
 import { checkForUpdate, type UpdateInfo } from "./updateService";
 import { APP_VERSION } from "./version";
 
+const AVATARS = ["😀", "😎", "🦊", "🐯", "🐸", "🐼", "🦄", "🐲", "🤖", "👾", "🦁", "🐙", "🌟", "🔥", "⚡", "🍀"];
+const PLAYER_COLORS = ["#7fb7ff", "#f5c84c", "#39c6a3", "#ef7a59", "#d89cff", "#f28bba", "#69d2a0", "#ff9f6e"];
+
 const defaultPlayers: PlayerProfiles = [
-  { name: "Joueur 1", wins: 0 },
-  { name: "Joueur 2", wins: 0 }
+  { name: "Joueur 1", wins: 0, avatar: "😀", color: "#7fb7ff" },
+  { name: "Joueur 2", wins: 0, avatar: "😎", color: "#f5c84c" }
 ];
 
 type ThemeName = "dark" | "arcade" | "wood" | "neon";
+const musicStyleForTheme: Record<ThemeName, MusicStyle> = {
+  dark: "chill",
+  neon: "chill",
+  arcade: "chiptune",
+  wood: "acoustic"
+};
 type MatchHistoryEntry = {
   id: string;
   gameId: GameId;
@@ -56,6 +67,9 @@ const defaultSettings: GameSettings = {
   matchesStart: 21,
   ticTacToeSize: 3,
   hangmanErrors: 6,
+  memorySize: 4,
+  checkersSize: 8,
+  checkersMajority: false,
   sound: true,
   music: true,
   vibration: true
@@ -80,8 +94,8 @@ const loadPlayers = (): PlayerProfiles => {
     if (!stored) return defaultPlayers;
     const parsed = JSON.parse(stored) as PlayerProfiles;
     return [
-      { name: parsed[0]?.name || defaultPlayers[0].name, wins: Number(parsed[0]?.wins || 0) },
-      { name: parsed[1]?.name || defaultPlayers[1].name, wins: Number(parsed[1]?.wins || 0) }
+      { name: parsed[0]?.name || defaultPlayers[0].name, wins: Number(parsed[0]?.wins || 0), avatar: parsed[0]?.avatar || defaultPlayers[0].avatar, color: parsed[0]?.color || defaultPlayers[0].color },
+      { name: parsed[1]?.name || defaultPlayers[1].name, wins: Number(parsed[1]?.wins || 0), avatar: parsed[1]?.avatar || defaultPlayers[1].avatar, color: parsed[1]?.color || defaultPlayers[1].color }
     ];
   } catch {
     return defaultPlayers;
@@ -113,7 +127,9 @@ const gameMap: Record<GameId, (props: GameProps) => JSX.Element> = {
   dominoes: (props) => <Dominoes {...props} />,
   mancala: (props) => <Mancala {...props} />,
   quarto: (props) => <Quarto {...props} />,
-  memory: (props) => <MemoryDuel {...props} />
+  memory: (props) => <MemoryDuel {...props} />,
+  dotsboxes: (props) => <DotsBoxes {...props} />,
+  reflex: (props) => <Reflex {...props} />
 };
 
 export function App() {
@@ -153,8 +169,8 @@ export function App() {
   }, [settings]);
 
   useEffect(() => {
-    configureAudio({ sound: settings.sound, music: settings.music });
-  }, [settings.sound, settings.music]);
+    configureAudio({ sound: settings.sound, music: settings.music, style: musicStyleForTheme[theme] });
+  }, [settings.sound, settings.music, theme]);
 
   useEffect(() => {
     window.localStorage.setItem("duelio.theme", JSON.stringify(theme));
@@ -226,6 +242,30 @@ export function App() {
       next[index].name = name;
       return next;
     });
+  };
+
+  const setPlayerAvatar = (index: PlayerIndex, avatar: string) => {
+    setPlayers((current) => {
+      const next: PlayerProfiles = [{ ...current[0] }, { ...current[1] }];
+      next[index].avatar = avatar;
+      return next;
+    });
+    playFeedback("tap");
+  };
+
+  const setPlayerColor = (index: PlayerIndex, color: string) => {
+    setPlayers((current) => {
+      const next: PlayerProfiles = [{ ...current[0] }, { ...current[1] }];
+      next[index].color = color;
+      return next;
+    });
+    playFeedback("tap");
+  };
+
+  const playSurprise = () => {
+    const pool = games.map((game) => game.id);
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    openGame(pick);
   };
 
   const playFeedback = (kind: SfxKind) => {
@@ -321,6 +361,11 @@ export function App() {
 
   const tournamentLimit = Math.ceil(tournament.target / 2);
   const tournamentWinner: PlayerIndex | null = tournament.score[0] >= tournamentLimit ? 0 : tournament.score[1] >= tournamentLimit ? 1 : null;
+  const totalGames = stats.gamesPlayed[0] + stats.gamesPlayed[1];
+  const headToHead = useMemo(() => games
+    .map((game) => ({ game, wins: (stats.perGameWins[game.id] || [0, 0]) as [number, number] }))
+    .filter(({ wins }) => wins[0] + wins[1] > 0)
+    .sort((a, b) => (b.wins[0] + b.wins[1]) - (a.wins[0] + a.wins[1])), [stats.perGameWins]);
 
   const renderGameTile = (game: GameDefinition, compact = false) => {
     const Icon = game.icon;
@@ -510,24 +555,29 @@ export function App() {
       {selectedGame ? (
         <section className={`game-stage game-stage-${selectedGame}`} key={`${selectedGame}-${gameRun}`}>
           {lastResult && (
-            <div className="result-panel">
-              <div className="confetti" aria-hidden="true">
-                {Array.from({ length: 12 }).map((_, index) => <span key={index} />)}
+            <>
+              <div className="confetti-fullscreen" aria-hidden="true">
+                {Array.from({ length: 40 }).map((_, index) => <span key={index} />)}
               </div>
-              <div>
-                <p className="kicker">Fin de partie</p>
-                <h2>{lastResult.winnerName} gagne !</h2>
-                <span>{lastResult.gameTitle} · {lastResult.score}</span>
+              <div className="result-panel celebrate" style={{ "--win-color": players[lastResult.winner].color } as React.CSSProperties}>
+                <div className="result-head">
+                  <span className="result-avatar">{players[lastResult.winner].avatar}</span>
+                  <div>
+                    <p className="kicker">Fin de partie</p>
+                    <h2>{lastResult.winnerName} gagne !</h2>
+                    <span>{lastResult.gameTitle} · {lastResult.score}</span>
+                  </div>
+                </div>
+                <div className="result-summary">
+                  <span>Score global : {players[0].name} {players[0].wins} - {players[1].wins} {players[1].name}</span>
+                  {tournament.enabled && <span>Tournoi : {players[0].name} {tournament.score[0]} - {tournament.score[1]} {players[1].name}{tournamentWinner !== null ? ` — remporté par ${players[tournamentWinner].name} !` : ` (objectif ${tournamentLimit})`}</span>}
+                </div>
+                <div className="result-actions">
+                  <button className="primary-action" onClick={rematch}>Revanche</button>
+                  <button className="secondary-action" onClick={() => { setSelectedGame(null); setLastResult(null); }}>Changer de jeu</button>
+                </div>
               </div>
-              <div className="result-summary">
-                <span>Score global : {players[0].name} {players[0].wins} - {players[1].wins} {players[1].name}</span>
-                {tournament.enabled && <span>Tournoi : {players[0].name} {tournament.score[0]} - {tournament.score[1]} {players[1].name}{tournamentWinner !== null ? ` — remporté par ${players[tournamentWinner].name} !` : ` (objectif ${tournamentLimit})`}</span>}
-              </div>
-              <div className="result-actions">
-                <button className="primary-action" onClick={rematch}>Revanche</button>
-                <button className="secondary-action" onClick={() => { setSelectedGame(null); setLastResult(null); }}>Changer de jeu</button>
-              </div>
-            </div>
+            </>
           )}
           {gameMap[selectedGame]({ players, settings, onWin: recordWin, feedback: playFeedback })}
         </section>
@@ -552,12 +602,17 @@ export function App() {
               <section className="versus-strip">
                 {players.map((player, index) => (
                   <div key={index}>
-                    <span className={`player-avatar avatar-${index}`}>{player.name.slice(0, 1).toUpperCase() || index + 1}</span>
+                    <span className="player-avatar" style={{ background: player.color }}>{player.avatar}</span>
                     <strong>{player.name}</strong>
                     <small>{player.wins} victoire{player.wins > 1 ? "s" : ""}</small>
                   </div>
                 ))}
               </section>
+
+              <button className="surprise-button" onClick={playSurprise}>
+                <Dices size={20} />
+                Jeu surprise
+              </button>
 
               {lastPlayedGame && (
                 <section className="resume-panel">
@@ -624,32 +679,70 @@ export function App() {
           {homeTab === "players" && (
             <section className="players-panel clean-panel" aria-label="Joueurs">
               {players.map((player, index) => (
-                <label key={index} className="player-card">
-                  <span className={`player-avatar avatar-${index}`}>{player.name.slice(0, 1).toUpperCase() || index + 1}</span>
+                <div key={index} className="player-card">
+                  <span className="player-avatar" style={{ background: player.color }}>{player.avatar}</span>
                   <span>Joueur {index + 1}</span>
                   <input value={player.name} maxLength={16} onChange={(event) => renamePlayer(index as PlayerIndex, event.target.value)} />
+                  <div className="avatar-grid" role="group" aria-label="Avatar">
+                    {AVATARS.map((emoji) => (
+                      <button key={emoji} className={player.avatar === emoji ? "avatar-pick active" : "avatar-pick"} onClick={() => setPlayerAvatar(index as PlayerIndex, emoji)} aria-label={`Avatar ${emoji}`}>{emoji}</button>
+                    ))}
+                  </div>
+                  <div className="color-grid" role="group" aria-label="Couleur">
+                    {PLAYER_COLORS.map((color) => (
+                      <button key={color} className={player.color === color ? "color-pick active" : "color-pick"} style={{ background: color }} onClick={() => setPlayerColor(index as PlayerIndex, color)} aria-label={`Couleur ${color}`} />
+                    ))}
+                  </div>
                   <strong>{player.wins} victoire{player.wins > 1 ? "s" : ""}</strong>
                   <small>Meilleur jeu : {bestGameFor(index as PlayerIndex)}</small>
-                </label>
+                </div>
               ))}
               <button className="reset-score" onClick={resetWins}>Remettre les scores à zéro</button>
             </section>
           )}
 
           {homeTab === "stats" && (
-            <section className="history-panel clean-panel">
-              <div>
-                <p className="kicker">Série en cours</p>
-                <strong>{stats.currentStreak.player === null ? "Aucune série" : `${players[stats.currentStreak.player].name} : ${stats.currentStreak.count} victoire${stats.currentStreak.count > 1 ? "s" : ""} de suite`}</strong>
+            <section className="stats-panel clean-panel">
+              <div className="stats-grid">
+                <div className="stat-box">
+                  <span className="stat-num">{totalGames}</span>
+                  <span className="stat-label">parties jouées</span>
+                </div>
+                <div className="stat-box">
+                  <span className="stat-num">{players[0].avatar} {stats.gamesPlayed[0]} · {stats.gamesPlayed[1]} {players[1].avatar}</span>
+                  <span className="stat-label">victoires globales</span>
+                </div>
+                <div className="stat-box wide">
+                  <span className="stat-num">{stats.currentStreak.player === null ? "—" : `${players[stats.currentStreak.player].avatar} ${players[stats.currentStreak.player].name} · ${stats.currentStreak.count}`}</span>
+                  <span className="stat-label">série en cours</span>
+                </div>
               </div>
-              {stats.history.length === 0 && <p className="empty-state">Aucune partie terminée pour l'instant.</p>}
-              {stats.history.slice(0, 10).map((entry) => (
-                <div key={entry.id} className="history-row">
-                  <span>{entry.gameTitle}</span>
-                  <strong>{entry.winnerName}</strong>
-                  <small>{new Date(entry.date).toLocaleDateString("fr-FR")} · {entry.score}</small>
+
+              <p className="kicker">Face-à-face par jeu</p>
+              {headToHead.length === 0 && <p className="empty-state">Aucune partie terminée pour l'instant.</p>}
+              {headToHead.map(({ game, wins }) => (
+                <div key={game.id} className="h2h-row">
+                  <span className="h2h-title">{game.title}</span>
+                  <div className="h2h-bar" aria-hidden="true">
+                    <i style={{ flexGrow: wins[0] || 0.001, background: players[0].color }} />
+                    <i style={{ flexGrow: wins[1] || 0.001, background: players[1].color }} />
+                  </div>
+                  <strong className="h2h-score">{wins[0]} - {wins[1]}</strong>
                 </div>
               ))}
+
+              {stats.history.length > 0 && (
+                <>
+                  <p className="kicker">Dernières parties</p>
+                  {stats.history.slice(0, 8).map((entry) => (
+                    <div key={entry.id} className="history-row">
+                      <span>{entry.gameTitle}</span>
+                      <strong>{players[entry.winner].avatar} {entry.winnerName}</strong>
+                      <small>{new Date(entry.date).toLocaleDateString("fr-FR")} · {entry.score}</small>
+                    </div>
+                  ))}
+                </>
+              )}
             </section>
           )}
 
@@ -680,6 +773,21 @@ export function App() {
                   Erreurs au pendu
                   <input type="number" min="4" max="10" value={settings.hangmanErrors} onChange={(event) => setSettings({ ...settings, hangmanErrors: Number(event.target.value) })} />
                 </label>
+                <label>
+                  Grille du Memory
+                  <select value={settings.memorySize} onChange={(event) => setSettings({ ...settings, memorySize: Number(event.target.value) as 4 | 6 })}>
+                    <option value={4}>4x4 (8 paires)</option>
+                    <option value={6}>6x6 (18 paires)</option>
+                  </select>
+                </label>
+                <label>
+                  Plateau des Dames
+                  <select value={settings.checkersSize} onChange={(event) => setSettings({ ...settings, checkersSize: Number(event.target.value) as 8 | 10 })}>
+                    <option value={8}>8x8</option>
+                    <option value={10}>10x10</option>
+                  </select>
+                </label>
+                <button className={settings.checkersMajority ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, checkersMajority: !settings.checkersMajority })}>Dames : prise majoritaire {settings.checkersMajority ? "ON" : "OFF"}</button>
                 <button className={settings.sound ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, sound: !settings.sound })}>Sons {settings.sound ? "activés" : "coupés"}</button>
                 <button className={settings.music ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, music: !settings.music })}>Musique {settings.music ? "activée" : "coupée"}</button>
                 <button className={settings.vibration ? "toggle-on" : ""} onClick={() => setSettings({ ...settings, vibration: !settings.vibration })}>Vibrations {settings.vibration ? "activées" : "coupées"}</button>
