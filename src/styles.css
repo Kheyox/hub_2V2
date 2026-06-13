@@ -3193,3 +3193,20 @@ button {
   background: linear-gradient(90deg, var(--brand), var(--blue));
   transition: width 200ms ease;
 }
+
+/* ====== Yatzy bonus ====== */
+
+.yatzy-bonus-banner {
+  padding: 10px 14px;
+  border-radius: var(--radius-control);
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--gold) 22%, var(--surface)), color-mix(in srgb, var(--coral) 16%, var(--surface)));
+  color: var(--text);
+  font-weight: 800;
+  text-align: center;
+  animation: pulse 600ms ease 2 alternate;
+}
+
+.yatzy-bonus-banner strong {
+  color: var(--gold);
+}

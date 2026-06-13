@@ -41,6 +41,10 @@ export function Yatzy({ players, onWin, feedback }: GameProps) {
   const finished = scores.every(isYatzySheetComplete);
   const winnerIndex = totals[0] === totals[1] ? null : ((totals[0] > totals[1] ? 0 : 1) as PlayerIndex);
   const canScore = rolls > 0 && !finished && !rolling;
+  // Yatzy bonus : 5 dés identiques alors que la case Yatzy est déjà à 50.
+  // Dans ce cas, n'importe quelle case libre choisie reçoit 50 points.
+  const isYatzyRoll = rolls > 0 && dice.every((value) => value === dice[0]);
+  const yatzyBonus = canScore && isYatzyRoll && scores[player].yatzy === 50;
   const status = finished
     ? (winnerIndex === null ? `Égalité ${totals[0]} - ${totals[1]}` : `${players[winnerIndex].name} gagne ${totals[winnerIndex]} - ${totals[winnerIndex === 0 ? 1 : 0]}`)
     : `${players[player].name} joue`;
@@ -69,7 +73,8 @@ export function Yatzy({ players, onWin, feedback }: GameProps) {
     if (!canScore || scores[player][category] !== null) return;
     feedback("tap");
     const next: [YatzyScoreSheet, YatzyScoreSheet] = [{ ...scores[0] }, { ...scores[1] }];
-    next[player][category] = yatzyScoreFor(category, dice);
+    next[player][category] = yatzyBonus ? 50 : yatzyScoreFor(category, dice);
+    if (yatzyBonus) feedback("win");
     setScores(next);
     setPlayer(player === 0 ? 1 : 0);
     setHeld([false, false, false, false, false]);
@@ -90,7 +95,7 @@ export function Yatzy({ players, onWin, feedback }: GameProps) {
   const renderCell = (category: { id: Category; label: string; icon: string }) => {
     const stored = [scores[0][category.id], scores[1][category.id]];
     const open = stored[player] === null && canScore;
-    const preview = open ? yatzyScoreFor(category.id, dice) : null;
+    const preview = open ? (yatzyBonus ? 50 : yatzyScoreFor(category.id, dice)) : null;
     return (
       <button
         key={category.id}
@@ -115,6 +120,11 @@ export function Yatzy({ players, onWin, feedback }: GameProps) {
   return (
     <>
       <GameHeader title="Yatzy" status={status} onReset={reset} />
+      {yatzyBonus && (
+        <div className="yatzy-bonus-banner" role="status">
+          🎉 Yatzy bonus ! Pose <strong>50</strong> dans la case libre de ton choix.
+        </div>
+      )}
       <div className="yatzy-sheet">
         <div className="yatzy-col upper">
           {upperCategories.map(renderCell)}
