@@ -22,7 +22,7 @@ import { TicTacToe } from "./components/TicTacToe";
 import { Yatzy } from "./components/Yatzy";
 import { games, type GameDefinition, type GameId } from "./games";
 import type { GameProps, GameSettings, PlayerIndex, PlayerProfiles } from "./playerTypes";
-import { configureAudio, sfx, type MusicStyle, type SfxKind } from "./sound";
+import { configureAudio, resumeAudio, sfx, suspendAudio, type MusicStyle, type SfxKind } from "./sound";
 import { checkForUpdate, downloadAndInstall, isNativeApp, type DownloadState, type UpdateInfo } from "./updateService";
 import { APP_VERSION } from "./version";
 
@@ -265,6 +265,20 @@ export function App() {
 
     return () => remove?.();
   }, [selectedGame, updatePanelOpen, rulesGame]);
+
+  // Coupe l'audio quand l'app passe en arrière-plan (Android), reprise au retour.
+  useEffect(() => {
+    let remove: undefined | (() => void);
+    import("@capacitor/app").then(({ App: CapacitorApp }) => {
+      CapacitorApp.addListener("appStateChange", ({ isActive }) => {
+        if (isActive) resumeAudio();
+        else suspendAudio();
+      }).then((handle) => {
+        remove = () => handle.remove();
+      });
+    }).catch(() => undefined);
+    return () => remove?.();
+  }, []);
 
   const startInstall = (info: UpdateInfo) => {
     if (info.status !== "available") return;

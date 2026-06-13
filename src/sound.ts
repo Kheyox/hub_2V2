@@ -192,6 +192,21 @@ export const configureAudio = (options: { sound: boolean; music: boolean; style?
   }
 };
 
+// Mise en pause quand l'app passe en arrière-plan, reprise au retour.
+export const suspendAudio = () => {
+  if (musicTimer !== null) {
+    window.clearInterval(musicTimer);
+    musicTimer = null;
+  }
+  if (ctx && ctx.state === "running") ctx.suspend().catch(() => undefined);
+};
+
+export const resumeAudio = () => {
+  if (!ctx) return;
+  if (ctx.state === "suspended") ctx.resume().catch(() => undefined);
+  if (musicOn && musicTimer === null) startMusic();
+};
+
 // Les navigateurs mobiles exigent un geste utilisateur avant de jouer du son :
 // au premier toucher, on (re)démarre le contexte et la musique si activée.
 if (typeof document !== "undefined") {
@@ -200,4 +215,8 @@ if (typeof document !== "undefined") {
     if (audio && musicOn && musicTimer === null) startMusic();
   };
   document.addEventListener("pointerdown", unlock, { passive: true });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) suspendAudio();
+    else resumeAudio();
+  });
 }
